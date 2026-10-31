@@ -18,6 +18,10 @@ const FACE_12S = [0.489, 0.475] as const;
 // The 5 s cut starts mid-turn, so the first frame is a poor detection; 2 s in the face is centred and large.
 const FACE_5S = [0.401, 0.512, 2] as const;
 
+// The check has two judges. SFace similarity alone cannot carry this site: two different babies score 0.51–0.74 and the
+// same baby repainted scores 0.79–0.82, so no threshold separates a swap from a missed swap. The face-box pixel
+// difference can: an untouched clip scores 0, a repaint about 23, a different baby about 59 — hence minChange: 10.
+
 const CLIP_12S = 'assets/baby-dance/source-12s.mp4';
 const CLIP_5S = 'assets/baby-dance/source-5s.mp4';
 
@@ -59,7 +63,7 @@ export default serverModels(catalog, {
           maxCost: '3.80',
           target: 12,
           base: CLIP_12S,
-          check: { original: CLIP_12S, faces: { baby: FACE_12S }, maxSimilarity: 0.45 },
+          check: { original: CLIP_12S, faces: { baby: FACE_12S }, maxSimilarity: 0.45, minChange: 10 },
         },
       ],
       compose: {
@@ -75,8 +79,8 @@ export default serverModels(catalog, {
   'baby-dance-preview': {
     upstream: 'yir',
     // Kling 4.0 is the only model Yir can actually price for reference_video: Seedance 2.0 and Mini both quote
-    // complete_price_unavailable, and with them unavailable the cheap 5 s tier no longer exists. Quoted $2.94 at
-    // 5 s / 720p, i.e. only $0.59 under the 12 s cut — this tier needs a product decision, not just a config tune.
+    // complete_price_unavailable, and with them unavailable the cheap 5 s tier no longer exists. It quotes $2.94 for
+    // 5 s / 720p but billed $0.7605 (Yir billing, settled 2026-10-31), so one sign-up bonus pays for a real swap.
     upstreamModel: 'klingai/kling-4.0',
     maxCost: '3.20',
     timeoutMinutes: 20,
@@ -92,7 +96,7 @@ export default serverModels(catalog, {
           maxCost: '3.20',
           target: 5,
           base: CLIP_5S,
-          check: { original: CLIP_5S, faces: { baby: FACE_5S }, maxSimilarity: 0.45 },
+          check: { original: CLIP_5S, faces: { baby: FACE_5S }, maxSimilarity: 0.45, minChange: 10 },
         },
       ],
       compose: {

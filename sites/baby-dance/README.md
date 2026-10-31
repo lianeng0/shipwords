@@ -95,6 +95,7 @@ Source clips must be square-pixel: Kling rejects non-1:1 PAR with `VideoNormaliz
 
 - [ ] Rewrite this README: it still describes the `kling-2.6` 10 s pipeline, while the shipped site runs `klingai/kling-4.0` in reference mode (5 s preview / 12 s full) with the song muxed by the compose container.
 - [ ] Replace the face-swap check: SFace scores different babies at 0.51–0.74 and the same baby at 0.79–0.82, so the 0.45 threshold fails every real swap. Score the face-box pixel diff instead (identical 0.0 / same baby repainted 22.8 / swapped baby 59.2).
+  - Done 2026-11-01: `check.minChange: 10` on both models, the container's `faces.py` now returns `{similarity, change}`. Still open until one real job passes the check end to end.
 - [ ] Decide the audio path (blocker 1) and the free-trial question (blocker 2).
 - [ ] Run three real generations; confirm model, prompt and `maxCost`.
 - [ ] Replace the placeholder `database_id` in `wrangler.jsonc` after `pnpm wrangler d1 create baby-dance`.

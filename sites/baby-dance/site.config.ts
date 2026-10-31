@@ -2,12 +2,12 @@ import { defineSite } from '@shipwords/core/site';
 
 // All config for this site. Prices are in the smallest currency unit (cents). Do not change id after launch.
 //
-// Two lengths, two costs (see src/models.server.ts):
-//   5 s preview, 10 credits  — Seedance 2.0 mini 480p, about $0.09 upstream. One sign-up covers it exactly.
-//   12 s full,   30 credits  — Kling 4.0 720p (a reference video bills twice the output seconds), about $2.04.
-// So 30 credits at $6.99 keeps the full video at roughly 71% gross margin (volume tiers taper to 68% / 64%), and the
-// free preview costs $0.09 per verified account — affordable only because the bonus is capped to one account per IP
-// per day.
+// Two lengths, two costs (see src/models.server.ts). Both are Kling 4.0 in reference mode, so the free preview is the same
+// swap as the paid video, just shorter:
+//   5 s preview, 10 credits  — quoted $2.94, billed $0.7605 (Yir billing, settled 2026-10-31, 720p reference mode).
+//   12 s full,   30 credits  — same model, roughly twice the render; the 12 s bill still needs a real run to confirm.
+// So 30 credits at $6.99 keeps the full video above 60% gross margin, and one free preview per verified account costs
+// about $0.76 — affordable because the bonus is capped to one account per IP per day and expires in a week.
 export default defineSite({
   id: 'babydance',
   name: 'Baby Dance AI',
