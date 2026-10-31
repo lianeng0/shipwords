@@ -28,6 +28,8 @@ playwright-report/
 # Local tool directories
 .claude/
 .impeccable/
+.workbuddy/
 
 # Example media (clips and stills cut from third-party footage) stays out of the repo; see sites/tinydeskai-example/README.md
+# (Each site ignores its own public/media/ in sites/<site>/.gitignore.)
 sites/tinydeskai-example/public/media/
