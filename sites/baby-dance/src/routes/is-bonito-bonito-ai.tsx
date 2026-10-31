@@ -1,0 +1,101 @@
+import { pageHead } from '@shipwords/core/seo';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { Faq, type FaqItem, faqJsonLd, GuidePage, Table } from '~/site/guide';
+import { m } from '~/paraglide/messages.js';
+import site from '../../site.config';
+
+// Targets "is bonito bonito ai", "bonito bonito es ia", "who sings bonito bonito". The question is asked in two
+// different senses (the song, the baby videos), so the page answers both and shows the platform labels people can
+// check themselves. Nothing here is inferred: the sources are the Spotify persona tag, the YouTube AI label and the
+// songwriter's own interviews (El Tiempo, La FM, El Comercio).
+
+const PATH = '/is-bonito-bonito-ai';
+
+const SPLIT: [string, string, string][] = [
+  ['The lyrics', 'A person', 'Written by Anier Cruz Revilla, who is credited as writer and composer'],
+  ['The melody', 'AI, directed', 'Generated with AI tools, then arranged by the writer'],
+  ['The voice', 'AI', 'There is no human singer on the record'],
+  ['The face', 'AI', 'The performer is a generated persona, described in the profile as a digital artist'],
+  ['The release', 'A person', 'Published 3 August 2026 under the name Thiago Navarro Music'],
+  ['The baby video', 'AI video', 'A video model swaps the baby in the reference clip for your photo'],
+];
+
+const TIMELINE: [string, string][] = [
+  ['3 August 2026', 'Bonito, Bonito is released under Thiago Navarro Music.'],
+  [
+    'August–September 2026',
+    'Latin America and Spain act out the lines — coffee, smile, hug — in offices, kitchens and family videos.',
+  ],
+  ['September 2026', 'Outlets report that the performer is an AI persona built for the songwriter behind it.'],
+  ['21 October 2026', 'Mexican duo Río Roma publish their own official video: a human performance of the song.'],
+  ['From 24 October 2026', 'The English-language AI baby template takes off, using the same original audio.'],
+];
+
+const faq = (): FaqItem[] => [
+  { q: m.isai_faq1_q(), a: m.isai_faq1_a() },
+  { q: m.isai_faq2_q(), a: m.isai_faq2_a() },
+  { q: m.isai_faq3_q(), a: m.isai_faq3_a() },
+  { q: m.isai_faq4_q(), a: m.isai_faq4_a() },
+];
+
+export const Route = createFileRoute('/is-bonito-bonito-ai')({
+  head: () =>
+    pageHead(site, {
+      title: m.isai_meta_title(),
+      description: m.isai_meta_description(),
+      path: PATH,
+      image: `${site.url}/media/og-home.jpg`,
+      jsonLd: [
+        {
+          '@type': 'Article',
+          headline: m.isai_title(),
+          description: m.isai_meta_description(),
+          datePublished: '2026-10-31',
+          dateModified: '2026-10-31',
+          author: { '@type': 'Organization', name: site.name },
+          publisher: { '@type': 'Organization', name: site.name },
+          mainEntityOfPage: `${site.url}${PATH}`,
+        },
+        faqJsonLd(faq()),
+      ],
+    }),
+  component: IsAiPage,
+});
+
+function IsAiPage() {
+  return (
+    <GuidePage
+      path={PATH}
+      title={m.isai_title()}
+      intro={
+        <>
+          <p className="lead">{m.isai_intro()}</p>
+          <p>
+            {m.isai_split_text()}{' '}
+            <Link to="/thiago-navarro">{m.tn_nav_title()}</Link>
+          </p>
+        </>
+      }
+    >
+      <h2>{m.isai_split_heading()}</h2>
+      <Table head={['Part', 'Made by', 'Detail']} rows={SPLIT} />
+
+      <h2>{m.isai_evidence_heading()}</h2>
+      <p>{m.isai_evidence_text()}</p>
+      <p>{m.isai_evidence_text2()}</p>
+
+      <h2>{m.isai_timeline_heading()}</h2>
+      <p>{m.isai_timeline_text()}</p>
+      <Table head={['Date', 'What happened']} rows={TIMELINE} />
+
+      <h2>{m.isai_rio_heading()}</h2>
+      <p>{m.isai_rio_text()}</p>
+
+      <h2>{m.isai_video_heading()}</h2>
+      <p>{m.isai_video_text()}</p>
+      <p>{m.isai_video_text2()}</p>
+
+      <Faq title={m.isai_faq_title()} items={faq()} />
+    </GuidePage>
+  );
+}

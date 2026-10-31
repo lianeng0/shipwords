@@ -1,0 +1,49 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "baby-dance",
+  "main": "src/server.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "upload_source_maps": true,
+  // Custom domain, not a workers.dev subdomain: the zone is on this account, and email sign-in needs the same origin
+  // that the DKIM/return-path records point at.
+  "routes": [{ "pattern": "aibabydancing.com", "custom_domain": true }],
+  "vars": {
+    "EMAIL_FROM": "noreply@aibabydancing.com",
+    // To enable Rybbit, set this to your Rybbit API URL (e.g. https://rybbit.example.com/api) and add analytics.rybbit to site.config.ts.
+    "RYBBIT_UPSTREAM": ""
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "baby-dance",
+      "database_id": "915f62b4-27b1-4ce8-be17-69a02dc52654",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [{ "binding": "OUTPUTS", "bucket_name": "baby-dance-outputs" }],
+  "send_email": [{ "name": "EMAIL" }],
+  "workflows": [
+    {
+      "name": "baby-dance-generation",
+      "binding": "GENERATION_WORKFLOW",
+      "class_name": "GenerationWorkflow"
+    }
+  ],
+  // Effect compose container: ffmpeg image in packages/jobs/compose. Mixes the original song back over the swapped
+  // video and writes the silent copy. Instance size is set in start() in src/server.ts.
+  "containers": [
+    {
+      "class_name": "ComposeContainer",
+      "scheduling_policy": "durable_object",
+      "images": { "compose": { "dockerfile": "../../packages/jobs/compose/Dockerfile" } }
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "COMPOSE", "class_name": "ComposeContainer" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ComposeContainer"] }],
+  // Local dev neither builds nor runs the container (no Docker needed); with UPSTREAM_MOCK=1 the mock composer is used instead.
+  "dev": { "enable_containers": false }
+}
