@@ -122,8 +122,9 @@ export function mockComposer(bucket: R2Bucket, fixed?: { song: string; silent: s
       const bytes = await object.arrayBuffer();
       return { song: bytes, silent: bytes.slice(0) };
     },
+    // Never reached while the mock always passes the check: every point scores as far from the original as it can be.
     async faces(input) {
-      return input.points.map(() => 0);
+      return { similarity: input.points.map(() => 0), change: input.points.map(() => 255) };
     },
     // Never reached while faces always passes; kept as plain copies so the interface is complete.
     async extract(input) {

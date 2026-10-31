@@ -456,6 +456,8 @@ describe('effect compose', () => {
     checks: FacesInput[] = [];
     /** Per-slot similarity returned by each check in turn; returns "swapped" once exhausted. */
     scores: number[][] = [];
+    /** Per-slot pixel difference returned by each check in turn; an untouched clip (0) once exhausted. */
+    changes: number[][] = [];
     checkError: Error | null = null;
     async compose(input: ComposeInput) {
       this.calls.push(input);
@@ -465,7 +467,10 @@ describe('effect compose', () => {
     async faces(input: FacesInput) {
       this.checks.push(input);
       if (this.checkError) throw this.checkError;
-      return this.scores.shift() ?? input.points.map(() => 0.3);
+      return {
+        similarity: this.scores.shift() ?? input.points.map(() => 0.3),
+        change: this.changes.shift() ?? input.points.map(() => 0),
+      };
     }
     extracts: ExtractInput[] = [];
     patches: PatchInput[] = [];
@@ -703,6 +708,65 @@ describe('effect compose', () => {
       expect(composer.calls).toHaveLength(0);
       expect((await getBalance(db, userId)).available).toBe(50);
       await markFailed(db, jobId, 'failed', 'again', 'again');
+      expect((await getBalance(db, userId)).available).toBe(50);
+    });
+
+    /** Same models, with check.minChange set: the pixel judge decides instead of the similarity alone. */
+    const redrawModels = (minChange: number) =>
+      defineModels([
+        {
+          ...checkModel,
+          effect: {
+            ...checkModel.effect!,
+            segments: checkModel.effect!.segments.map((segment) =>
+              segment.check ? { ...segment, check: { ...segment.check!, minChange } } : segment,
+            ),
+          },
+        },
+      ]);
+
+    it('a face the recognizer cannot tell apart passes when the box was redrawn (minChange)', async () => {
+      // Two different babies: SFace scores 0.95, so the similarity alone fails the job even though the face was redrawn.
+      const { userId, jobId } = await checkJob();
+      const adapter = adapterFor(jobId);
+      const composer = new FakeComposer();
+      composer.scores = [[0.95]];
+      composer.changes = [[22.8]];
+      await runGeneration(
+        { ...checkDeps(adapter, composer), models: redrawModels(10) },
+        jobId,
+        durableSteps(),
+      );
+      expect(await loadJob(db, jobId)).toMatchObject({ status: 'succeeded' });
+      expect(composer.calls).toHaveLength(1);
+      expect((await getBalance(db, userId)).available).toBe(40);
+    });
+
+    it('a high similarity with an untouched box still fails: the swap did not take', async () => {
+      const { userId, jobId } = await checkJob();
+      const adapter = adapterFor(jobId);
+      const composer = new FakeComposer();
+      composer.scores = [[0.98]];
+      composer.changes = [[0]];
+      await runGeneration(
+        { ...checkDeps(adapter, composer), models: redrawModels(10) },
+        jobId,
+        durableSteps(),
+      );
+      expect(await loadJob(db, jobId)).toMatchObject({ status: 'failed', errorCode: 'swap_not_applied' });
+      expect(composer.calls).toHaveLength(0);
+      expect((await getBalance(db, userId)).available).toBe(50);
+    });
+
+    it('without minChange a high similarity still fails, even when the box was redrawn', async () => {
+      // The adult-clip default: the pixel judge is opt-in, so a similarity over the threshold keeps failing the job.
+      const { userId, jobId } = await checkJob();
+      const adapter = adapterFor(jobId);
+      const composer = new FakeComposer();
+      composer.scores = [[0.95]];
+      composer.changes = [[22.8]];
+      await runGeneration(checkDeps(adapter, composer), jobId, durableSteps());
+      expect(await loadJob(db, jobId)).toMatchObject({ status: 'failed', errorCode: 'swap_not_applied' });
       expect((await getBalance(db, userId)).available).toBe(50);
     });
 

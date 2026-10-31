@@ -121,6 +121,13 @@ export interface EffectCheck {
   faces: Readonly<Record<string, FacePoint>>;
   /** Face similarity (cosine, 0–1) at or above which a slot still shows the original person. */
   maxSimilarity: number;
+  /**
+   * Face-box pixel difference (0–255) at or above which the model is judged to have redrawn the person, overriding a high
+   * similarity. Set it for subjects the recognizer cannot tell apart — two different babies score 0.51–0.74 and one baby
+   * repainted scores 0.79–0.82, so no similarity threshold separates them, while an untouched clip scores 0 and a repaint 20+.
+   * Optional: without it only maxSimilarity decides.
+   */
+  minChange?: number;
 }
 
 export type FacePoint = readonly [number, number] | readonly [number, number, number];
@@ -373,6 +380,8 @@ function validateEffect(model: ModelDefinition, effect: EffectSpec) {
       );
     if (!(check.maxSimilarity > 0 && check.maxSimilarity < 1))
       throw new Error(`model ${modelId}: segment ${segment.id} check.maxSimilarity must be between 0 and 1`);
+    if (check.minChange !== undefined && !(check.minChange > 0 && check.minChange < 255))
+      throw new Error(`model ${modelId}: segment ${segment.id} check.minChange must be between 0 and 255`);
   }
   for (const segment of effect.segments) {
     if (segment.repair) validateRepair(modelId, effect, segment, segment.repair);

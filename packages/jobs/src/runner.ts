@@ -165,6 +165,8 @@ export function sumUsd(amounts: readonly string[]): string {
 
 interface SegmentCheck {
   maxSimilarity: number;
+  /** Face-box pixel difference that counts as redrawn, for subjects the recognizer can't tell apart; absent on checks cached by older versions. */
+  minChange?: number;
   /** Missing on checks cached by older versions (per-second SSIM): those jobs are delivered unchecked. */
   original?: string;
   faces?: Readonly<Record<string, FacePoint>>;
@@ -265,6 +267,7 @@ async function runSteps(deps: RunnerDeps, jobId: string, step: StepRunner): Prom
             segment.id,
             {
               maxSimilarity: segment.check!.maxSimilarity,
+              ...(segment.check!.minChange !== undefined ? { minChange: segment.check!.minChange } : {}),
               original: segment.check!.original,
               faces: segment.check!.faces,
               ...(segment.repair ? { repair: true } : {}),
@@ -463,41 +466,64 @@ async function runSteps(deps: RunnerDeps, jobId: string, step: StepRunner): Prom
     const key = partKeys.get(partId);
     if (!key) return true;
     // Step name keeps the old round suffix so in-flight jobs replay their cached check.
-    const verdict: { stopped: true } | { errored: string } | { scores: number[]; slots?: string[] } =
-      await step
-        .do(`check:${partId}:0`, async () => {
-          const job = await loadJob(deps.db, jobId);
-          if (!job || TERMINAL.includes(job.status)) return { stopped: true as const };
-          if (!original || !faces) return { scores: [] as number[] };
-          const model = deps.models.find((m) => m.id === job.modelId)!;
-          // Parts stored by older versions don't record their slots: check none rather than flag slots the user left as the original.
-          const slots = (partsOf(job, model)[index]!.slots ?? []).filter((slot) => faces[slot]);
-          if (!deps.composer || slots.length === 0) return { scores: [] as number[] };
-          const scores = await deps.composer.faces({
-            jobId,
-            key,
-            originalKey: original,
-            points: slots.map((slot) => faces[slot]!),
-            seconds: check.seconds,
-          });
-          return { scores, slots };
-        })
-        .catch((error: unknown) => {
-          deps.log?.('swap check errored', { jobId, part: partId, error: String(error) });
-          return { errored: String(error) };
+    const verdict:
+      | { stopped: true }
+      | { errored: string }
+      | { similarity: number[]; change: number[]; slots?: string[] } = await step
+      .do(`check:${partId}:0`, async () => {
+        const job = await loadJob(deps.db, jobId);
+        if (!job || TERMINAL.includes(job.status)) return { stopped: true as const };
+        const none = { similarity: [] as number[], change: [] as number[] };
+        if (!original || !faces) return none;
+        const model = deps.models.find((m) => m.id === job.modelId)!;
+        // Parts stored by older versions don't record their slots: check none rather than flag slots the user left as the original.
+        const slots = (partsOf(job, model)[index]!.slots ?? []).filter((slot) => faces[slot]);
+        if (!deps.composer || slots.length === 0) return none;
+        const judged = await deps.composer.faces({
+          jobId,
+          key,
+          originalKey: original,
+          points: slots.map((slot) => faces[slot]!),
+          seconds: check.seconds,
         });
+        return { ...judged, slots };
+      })
+      .catch((error: unknown) => {
+        deps.log?.('swap check errored', { jobId, part: partId, error: String(error) });
+        return { errored: String(error) };
+      });
     if ('stopped' in verdict) return false;
     if ('errored' in verdict) {
       await fail('check_failed', `${partId} output could not be checked: ${verdict.errored}`.slice(0, 500));
       return false;
     }
-    const worst = Math.max(0, ...verdict.scores);
+    const worst = Math.max(0, ...verdict.similarity);
     if (worst < check.maxSimilarity) return true;
-    deps.log?.('swap not applied', { jobId, part: partId, scores: verdict.scores });
+    // A high similarity says the original person's face is still there, but the recognizer cannot tell some subjects apart
+    // (babies), so a redrawn face box is accepted as a swap: 0 is an untouched clip, 20+ a repaint.
+    const redrawn = Math.max(0, ...verdict.change);
+    if (check.minChange !== undefined && redrawn >= check.minChange) {
+      deps.log?.('swap accepted on the pixel difference', {
+        jobId,
+        part: partId,
+        similarity: verdict.similarity,
+        change: verdict.change,
+      });
+      return true;
+    }
+    deps.log?.('swap not applied', {
+      jobId,
+      part: partId,
+      similarity: verdict.similarity,
+      change: verdict.change,
+    });
     // Checks cached by older versions don't name their slots; repair needs compose, the container and a public URL for the frames.
     if (check.repair && verdict.slots && setup.compose && deps.composer && deps.fileUrl)
-      return verdict.slots.filter((_, i) => verdict.scores[i]! >= check.maxSimilarity);
-    await fail('swap_not_applied', `${partId} still shows an original face (similarity ${worst})`);
+      return verdict.slots.filter((_, i) => verdict.similarity[i]! >= check.maxSimilarity);
+    await fail(
+      'swap_not_applied',
+      `${partId} still shows an original face (similarity ${worst}, change ${redrawn})`,
+    );
     return false;
   };
 
@@ -645,7 +671,7 @@ async function runSteps(deps: RunnerDeps, jobId: string, step: StepRunner): Prom
       current = patched.song;
       silent = patched.silent;
       const slots = job.slots.filter((slot) => check.faces![slot]);
-      const scores = await step
+      const judged = await step
         .do(`${label}:check`, () =>
           deps.composer!.faces({
             jobId,
@@ -656,15 +682,16 @@ async function runSteps(deps: RunnerDeps, jobId: string, step: StepRunner): Prom
           }),
         )
         .catch((error: unknown) => ({ errored: String(error) }));
-      if ('errored' in scores) {
+      if ('errored' in judged) {
         await fail(
           'check_failed',
-          `${partId} repair ${round} could not be checked: ${scores.errored}`.slice(0, 500),
+          `${partId} repair ${round} could not be checked: ${judged.errored}`.slice(0, 500),
         );
         return null;
       }
-      deps.log?.('repair pass checked', { jobId, part: partId, round, pass, scores });
-      missed = slots.filter((_, i) => scores[i]! >= check.maxSimilarity);
+      deps.log?.('repair pass checked', { jobId, part: partId, round, pass, change: judged.change });
+      // A repair pass is a second render, so the similarity is the only gate: a leftover original face is what it looks for.
+      missed = slots.filter((_, i) => judged.similarity[i]! >= check.maxSimilarity);
       if (missed.length > 0) continue;
       const delivered = await step.do(`${label}:deliver`, async () => {
         for (const [output, source] of [

@@ -4,7 +4,8 @@
 //   A segment with cuts is split at the scene cuts found in its video and each shot is retimed to its length; a missing cut fails the request.
 // GET  /files/<id>/song.mp4 | /files/<id>/silent.mp4  read results.
 // POST /faces  multipart: video (model output), original (unmasked clip of the shot), seconds, points (JSON [[x, y], ...]).
-//   Returns { similarity: [...] }: per point, how closely any face in the output matches the original person there (faces.py). Read-only.
+//   Returns { similarity: [...], change: [...] }: per point, how closely any face in the output matches the original person there,
+//   and how much that person's face box was redrawn against the same frame of the original (faces.py). Read-only.
 // POST /extract  multipart: manifest (JSON: { ranges: [[start, end), ...] frames, crop?: [x, y, w, h], width, height, fps }), video.
 //   Returns those frames joined into one silent MP4 (the box only, scaled up, with crop): the input of a repair pass. Read-only.
 // POST /patch  multipart: manifest (as extract plus id), video, patch (the repaired clip). Returns video with the repaired frames
@@ -148,10 +149,11 @@ async function faces(req) {
       String(seconds),
       JSON.stringify(points),
     ]);
-    const similarity = JSON.parse(stdout);
-    if (!Array.isArray(similarity) || similarity.length !== points.length)
-      throw new Error('bad faces output');
-    return similarity;
+    const judged = JSON.parse(stdout);
+    // Two judges, same length as the points: the SFace similarity and the face-box pixel difference.
+    for (const list of [judged?.similarity, judged?.change])
+      if (!Array.isArray(list) || list.length !== points.length) throw new Error('bad faces output');
+    return judged;
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -237,7 +239,7 @@ createServer(async (req, res) => {
       return sendFile(res, song, (await stat(song)).size);
     }
     if (req.method === 'POST' && req.url === '/faces') {
-      const body = JSON.stringify({ similarity: await faces(req) });
+      const body = JSON.stringify(await faces(req));
       return res.writeHead(200, { 'content-type': 'application/json' }).end(body);
     }
     const match = req.method === 'GET' && req.url?.match(/^\/files\/([a-z0-9_-]{1,80})\/(song|silent)\.mp4$/);

@@ -56,14 +56,23 @@ export interface PatchInput extends ExtractInput {
   patchKey: string;
 }
 
+export interface FacesResult {
+  /** Highest cosine similarity between each original face and any face in the output. */
+  similarity: number[];
+  /** Mean absolute grayscale difference of each original face box against the same box in the output, frame by frame (0 = untouched). */
+  change: number[];
+}
+
 export interface Composer {
   /** Repeated calls with the same jobId give the same result, safe for Workflow retries. */
   compose(input: ComposeInput): Promise<{ song: ArrayBuffer; silent: ArrayBuffer }>;
   /**
-   * Output check: for each point, the highest face similarity (cosine, 0–1) between the original person there and any face in the output.
-   * High means the original person is still in the output (not swapped). Same order as points. Read-only, repeatable.
+   * Output check, two judges in the same order as the points:
+   * `similarity` is the highest face similarity (cosine, 0–1) between the original person there and any face in the output —
+   * high means the original person is still in the output (not swapped). `change` is how much the face box was redrawn
+   * (mean grayscale difference, 0–255) — near zero means the output is the original clip untouched. Read-only, repeatable.
    */
-  faces(input: FacesInput): Promise<number[]>;
+  faces(input: FacesInput): Promise<FacesResult>;
   /** Repair input: the frames of the given ranges joined into one silent clip (or a box of them). Read-only, repeatable. */
   extract(input: ExtractInput): Promise<ArrayBuffer>;
   /**
@@ -124,14 +133,16 @@ export function containerComposer(namespace: DurableObjectNamespace, bucket: R2B
       const stub = namespace.get(namespace.idFromName(input.jobId));
       const response = await stub.fetch('http://compose/faces', { method: 'POST', body: form });
       if (!response.ok) throw new Error(`faces failed: ${response.status} ${await response.text()}`);
-      const { similarity } = (await response.json()) as { similarity?: unknown };
-      if (
-        !Array.isArray(similarity) ||
-        similarity.length !== input.points.length ||
-        !similarity.every((value) => typeof value === 'number')
-      )
-        throw new Error('faces returned no scores');
-      return similarity as number[];
+      const { similarity, change } = (await response.json()) as { similarity?: unknown; change?: unknown };
+      const scores = (value: unknown) =>
+        Array.isArray(value) &&
+        value.length === input.points.length &&
+        value.every((score) => typeof score === 'number')
+          ? (value as number[])
+          : null;
+      const pair = { similarity: scores(similarity), change: scores(change) };
+      if (!pair.similarity || !pair.change) throw new Error('faces returned no scores');
+      return pair as FacesResult;
     },
     async extract(input) {
       const form = new FormData();
