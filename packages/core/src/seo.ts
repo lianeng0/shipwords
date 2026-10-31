@@ -33,7 +33,10 @@ export function pageHead(site: SiteConfig, page: PageMeta) {
   if (page.image) {
     meta.push({ property: 'og:image', content: page.image }, { name: 'twitter:image', content: page.image });
   }
+  // Explicit index directives on every indexable page: max-image-preview:large is what lets Google show a full-size
+  // thumbnail in mobile results, and it is not the default.
   if (page.noindex) meta.push({ name: 'robots', content: 'noindex, nofollow' });
+  else meta.push({ name: 'robots', content: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' });
   return {
     meta,
     links: [{ rel: 'canonical', href: url }],
