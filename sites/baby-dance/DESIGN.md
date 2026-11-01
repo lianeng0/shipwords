@@ -17,14 +17,14 @@ A family album that happens to be a tool — warm, soft and a little silly. The 
 
 ## Colour
 
-| Role | Value | Note |
-| --- | --- | --- |
-| Page | `#FFF8F0` cream | warm, never pure white |
-| Surface | `#FFFFFF` cards with `#F1E4D6` 1px border | soft edge, no heavy shadows |
-| Primary | `#FF6B4A` coral | the one button that matters |
-| Accent | `#7FD1AE` mint | success, "your video is ready" |
-| Ink | `#2B2118` | warm near-black, not `#000` |
-| Muted | `#8A7A6D` | secondary copy |
+| Role    | Value                                     | Note                           |
+| ------- | ----------------------------------------- | ------------------------------ |
+| Page    | `#FFF8F0` cream                           | warm, never pure white         |
+| Surface | `#FFFFFF` cards with `#F1E4D6` 1px border | soft edge, no heavy shadows    |
+| Primary | `#FF6B4A` coral                           | the one button that matters    |
+| Accent  | `#7FD1AE` mint                            | success, "your video is ready" |
+| Ink     | `#2B2118`                                 | warm near-black, not `#000`    |
+| Muted   | `#8A7A6D`                                 | secondary copy                 |
 
 Two colours do the work: coral for action, mint for "done". No gradients, no glass, no neon.
 
@@ -64,3 +64,7 @@ Two colours do the work: coral for action, mint for "done". No gradients, no gla
   `table-wrap` tables): `/bonito-bonito-lyrics-english`, `/is-bonito-bonito-ai`, `/thiago-navarro`,
   `/bonito-bonito-without-capcut`. Copy lives in `messages/guides/{en,zh}.json`; each page is listed in the sitemap,
   `llms.txt`, a `#guides` section on the homepage, and the footer row.
+
+## Content and media
+
+Keep the warm sheet and table styles for product facts, source notes, photo guidance and About. Public video examples use a portrait player with native controls. Only the hero starts automatically; gallery videos start on request and pause offscreen. Source and editorial links remain readable and keyboard accessible.

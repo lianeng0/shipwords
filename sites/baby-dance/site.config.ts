@@ -45,5 +45,5 @@ export default defineSite({
   signup: { bonusCredits: 10, bonusExpiresDays: 7, bonusPerIpDaily: 1 },
   guest: { dailyPerDevice: 0, dailyPerIp: 0, dailySiteBudget: 0, minRecaptchaScore: 0.5 },
   billing: { provider: 'stripe', automaticTax: false },
-  analytics: {},
+  analytics: { ga4: 'G-LWBSELX9HW' },
 });

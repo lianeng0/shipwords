@@ -1,8 +1,13 @@
-// Rybbit custom events. Generic funnel (in order); each site adds or drops steps as needed:
+import type { SiteConfig } from '@shipwords/core/site';
+import site from '../../site.config';
+
+const analytics: NonNullable<SiteConfig['analytics']> = site.analytics;
+
+// Custom events for the configured Rybbit and GA4 collectors. Generic funnel (in order); each site adds or drops steps as needed:
 //   generate_click → sign_in_open → sign_in → pricing_open → checkout_start → payment_confirmed
 //   → generate_started → result_ready → result_download
 // Simple clicks use the data-rybbit-event attribute and are collected by the Rybbit script; this file only handles events that carry state.
-// The script loads with defer: earlier events are queued and flushed once it loads. Local dev never loads it, so events stay queued.
+// Early events are queued until configured collectors load. Local development and unconfigured sites do not queue events.
 
 type Props = Record<string, string | number | boolean>;
 type Rybbit = { event(name: string, props?: Props): void; identify?(userId: string): void };
@@ -13,15 +18,19 @@ let waiting = false;
 function rybbit(): Rybbit | undefined {
   return (window as { rybbit?: Rybbit }).rybbit;
 }
+function gtag() {
+  return (window as { gtag?: (command: string, name: string, props?: Props) => void }).gtag;
+}
 
 function flush() {
   const client = rybbit();
-  if (!client) return false;
+  if ((analytics.rybbit && !client) || (analytics.ga4 && !gtag())) return false;
   for (const send of queue.splice(0)) send();
   return true;
 }
 
 function later(send: () => void) {
+  if (queue.length >= 100) queue.shift();
   queue.push(send);
   if (waiting || flush()) return;
   waiting = true;
@@ -35,15 +44,31 @@ function later(send: () => void) {
 }
 
 export function track(name: string, props?: Props) {
-  if (typeof window === 'undefined') return;
-  later(() => rybbit()?.event(name, props));
+  if (
+    typeof window === 'undefined' ||
+    import.meta.env.DEV ||
+    window.location.origin !== site.url ||
+    (!analytics.rybbit && !analytics.ga4)
+  )
+    return;
+  later(() => {
+    if (analytics.rybbit) rybbit()?.event(name, props);
+    if (analytics.ga4) gtag()?.('event', name, props);
+  });
 }
 
 let identified: string | null = null;
 
 /** After sign-in, links the visitor session to the user id (no email sent). */
 export function identify(userId: string) {
-  if (typeof window === 'undefined' || identified === userId) return;
+  if (
+    typeof window === 'undefined' ||
+    import.meta.env.DEV ||
+    window.location.origin !== site.url ||
+    !analytics.rybbit ||
+    identified === userId
+  )
+    return;
   identified = userId;
   later(() => rybbit()?.identify?.(userId));
 }

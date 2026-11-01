@@ -8,6 +8,9 @@ import { track } from '~/lib/track';
 import { m } from '~/paraglide/messages.js';
 import { GUIDES } from '~/site/guide';
 import { Plans, PricingLink } from '~/site/pricing';
+import { firstVideoPrice, fullCredits, offers, previewCredits, priceSummary } from '~/site/product';
+import { ProductFacts } from '~/site/product-facts';
+import { SampleVideo } from '~/site/sample-video';
 import { openSignIn } from '~/site/sign-in';
 import site from '../../site.config';
 import models from '../../site.models';
@@ -68,8 +71,19 @@ const FAQ: { q: () => string; a: () => string }[] = [
   { q: m.home_faq_what_q, a: () => m.home_faq_what_a({ name: site.name }) },
   { q: m.home_faq_song_q, a: m.home_faq_song_a },
   { q: m.home_faq_how_q, a: m.home_faq_how_a },
-  { q: m.home_faq_free_q, a: m.home_faq_free_a },
-  { q: m.home_faq_cost_q, a: () => m.home_faq_cost_a({ preview: '5-second preview', full: '12-second full video' }) },
+  {
+    q: m.home_faq_free_q,
+    a: () =>
+      m.home_faq_free_a({
+        credits: site.signup.bonusCredits,
+        days: site.signup.bonusExpiresDays,
+        price: firstVideoPrice(),
+      }),
+  },
+  {
+    q: m.home_faq_cost_q,
+    a: () => m.home_faq_cost_a({ preview: previewCredits, full: fullCredits, offers: priceSummary() }),
+  },
   { q: m.home_faq_time_q, a: m.home_faq_time_a },
   { q: m.home_faq_capcut_q, a: m.home_faq_capcut_a },
   { q: m.home_faq_capcut_template_q, a: m.home_faq_capcut_template_a },
@@ -86,7 +100,7 @@ export const Route = createFileRoute('/')({
   head: () => {
     const base = pageHead(site, {
       title: m.home_meta_title(),
-      description: m.home_meta_description(),
+      description: m.home_meta_description({ price: firstVideoPrice() }),
       path: '/',
       image: `${site.url}/media/og-home.jpg`,
       jsonLd: [
@@ -98,25 +112,21 @@ export const Route = createFileRoute('/')({
           url: site.url,
           applicationCategory: 'MultimediaApplication',
           operatingSystem: 'Web',
-          description: m.home_meta_description(),
+          description: m.home_meta_description({ price: firstVideoPrice() }),
           inLanguage: 'en',
           isAccessibleForFree: true,
           screenshot: `${site.url}/media/sample-12s.jpg`,
           featureList: WHY.map((item) => item.title()),
-          offers: site.products.map((p) => ({
-            '@type': 'Offer',
-            name: p.name,
-            price: (p.price.amount / 100).toFixed(2),
-            priceCurrency: p.price.currency.toUpperCase(),
-          })),
+          offers: offers(),
         },
         {
           '@type': 'VideoObject',
-          name: m.home_sample_tab_full(),
+          name: 'Bonito Bonito baby dance — 12-second video example',
           description: m.home_sample_caption_full(),
           thumbnailUrl: `${site.url}/media/sample-12s.jpg`,
           contentUrl: `${site.url}/media/sample-12s.mp4`,
-          uploadDate: '2026-10-31',
+          // Original publication day, normalized to an ISO datetime; upload time was not recorded.
+          uploadDate: '2026-10-31T00:00:00+08:00',
           duration: 'PT12S',
           width: 720,
           height: 1280,
@@ -153,7 +163,7 @@ export const Route = createFileRoute('/')({
         { property: 'og:image:width', content: '1200' },
         { property: 'og:image:height', content: '630' },
         { name: 'twitter:title', content: m.home_meta_title() },
-        { name: 'twitter:description', content: m.home_meta_description() },
+        { name: 'twitter:description', content: m.home_meta_description({ price: firstVideoPrice() }) },
         { name: 'theme-color', content: '#FFF8F0' },
       ],
     };
@@ -200,16 +210,11 @@ function HomePage() {
           <SampleTabs value={sample} onPick={setSample} />
           <div className="sample-frame">
             <span className="sample-tag">{shown.tag()}</span>
-            <video
+            <SampleVideo
               key={shown.clip}
-              src={`/media/${shown.clip}.mp4`}
-              poster={`/media/${shown.clip}.jpg`}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              aria-label={m.home_media_alt({ label: shown.tab() })}
+              clip={shown.clip}
+              label={m.home_media_alt({ label: shown.tab() })}
+              hero
             />
           </div>
           <figcaption className="sample-caption">
@@ -226,16 +231,7 @@ function HomePage() {
         <ul className="gallery">
           {SAMPLES.map((item) => (
             <li key={item.clip}>
-              <video
-                src={`/media/${item.clip}.mp4`}
-                poster={`/media/${item.clip}.jpg`}
-                muted
-                loop
-                playsInline
-                autoPlay
-                preload="none"
-                aria-label={m.home_media_alt({ label: item.tab() })}
-              />
+              <SampleVideo clip={item.clip} label={m.home_media_alt({ label: item.tab() })} />
               <strong>{item.tab()}</strong>
               <span>{item.caption()}</span>
             </li>
@@ -258,8 +254,7 @@ function HomePage() {
           ))}
         </ul>
         <p className="muted move-note">
-          {m.home_trend_note()}{' '}
-          <Link to="/bonito-bonito-lyrics-english">{m.home_trend_link()}</Link>.
+          {m.home_trend_note()} <Link to="/bonito-bonito-lyrics-english">{m.home_trend_link()}</Link>.
         </p>
       </section>
 
@@ -293,8 +288,11 @@ function HomePage() {
       <section className="band" id="pricing">
         <p className="kicker">{m.home_pricing_kicker()}</p>
         <h2>{m.home_pricing_title()}</h2>
-        <p className="muted">{m.home_pricing_lead()}</p>
+        <p className="muted">
+          {m.home_pricing_lead({ days: site.signup.bonusExpiresDays, offers: priceSummary() })}
+        </p>
         <Plans />
+        <ProductFacts />
       </section>
 
       <section className="sheet faq" id="faq">
@@ -327,7 +325,8 @@ function HomePage() {
       <section className="closer sheet" id="start">
         <h2>{m.home_closer_title()}</h2>
         <p>{m.home_closer_text()}</p>
-        <a className="cta" href="#make" data-rybbit-event="closer_cta">
+        {/* biome-ignore lint/a11y/useValidAnchor: navigation to the generator; click only records attribution. */}
+        <a className="cta" href="/#make" onClick={() => track('closer_cta')}>
           {m.home_closer_cta()}
         </a>
       </section>
@@ -408,8 +407,11 @@ function BabyDanceTool({ generation }: { generation: ReturnType<typeof useGenera
     const file = files?.[0];
     if (!file) return;
     try {
+      track('upload_started', { type: file.type, bytes: file.size });
       setPhoto(await uploadReference(file));
+      track('upload_completed');
     } catch (e) {
+      track('upload_failed');
       setUploadError(e instanceof Error ? e.message : m.home_tool_upload_failed());
     }
   }
@@ -451,6 +453,7 @@ function BabyDanceTool({ generation }: { generation: ReturnType<typeof useGenera
           </span>
         </div>
       ) : (
+        // biome-ignore lint/a11y/noStaticElementInteractions: drag events supplement the native file input below.
         <div
           className={`drop-zone${dragging ? ' is-dragging' : ''}`}
           onDragOver={(e) => {
@@ -465,7 +468,7 @@ function BabyDanceTool({ generation }: { generation: ReturnType<typeof useGenera
           }}
         >
           <span className="drop-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M12 16V4m0 0L8 8m4-4 4 4" />
               <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
             </svg>
@@ -539,7 +542,9 @@ function ReturnNotice({ jobs }: { jobs: PublicJob[] }) {
   const rendering = jobs.some(isActive);
   const latest = jobs[0];
   const ready =
-    latest?.status === 'succeeded' && latest.finishedAt !== null && Date.now() - latest.finishedAt < RECENT_MS;
+    latest?.status === 'succeeded' &&
+    latest.finishedAt !== null &&
+    Date.now() - latest.finishedAt < RECENT_MS;
   if (!rendering && !ready) return null;
   return (
     <a
@@ -575,7 +580,8 @@ function GenerationError({
   if (code === 'insufficient_credits') {
     return (
       <p className="notice">
-        {m.home_tool_need_credits()} <PricingLink source="insufficient_credits">{m.home_tool_get_credits()}</PricingLink>
+        {m.home_tool_need_credits()}{' '}
+        <PricingLink source="insufficient_credits">{m.home_tool_get_credits()}</PricingLink>
       </p>
     );
   }
@@ -595,7 +601,13 @@ function JobCard({ job, email, onCancel }: { job: PublicJob; email?: string; onC
         ),
       )}
       {job.outputs.map((output) => (
-        <a key={output.url} className="button" href={output.url} download data-rybbit-event="result_download">
+        <a
+          key={output.url}
+          className="button"
+          href={output.url}
+          download
+          onClick={() => track('result_download')}
+        >
           {m.home_job_download()}
         </a>
       ))}

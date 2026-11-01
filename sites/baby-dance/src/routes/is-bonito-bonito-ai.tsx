@@ -1,7 +1,9 @@
 import { pageHead } from '@shipwords/core/seo';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Faq, type FaqItem, faqJsonLd, GuidePage, Table } from '~/site/guide';
 import { m } from '~/paraglide/messages.js';
+import { Faq, type FaqItem, faqJsonLd, GuidePage, Table } from '~/site/guide';
+import { breadcrumbs, organization, updatedDate } from '~/site/product';
+import { Sources } from '~/site/sources';
 import site from '../../site.config';
 
 // Targets "is bonito bonito ai", "bonito bonito es ia", "who sings bonito bonito". The question is asked in two
@@ -21,14 +23,9 @@ const SPLIT: [string, string, string][] = [
 ];
 
 const TIMELINE: [string, string][] = [
-  ['3 August 2026', 'Bonito, Bonito is released under Thiago Navarro Music.'],
-  [
-    'August–September 2026',
-    'Latin America and Spain act out the lines — coffee, smile, hug — in offices, kitchens and family videos.',
-  ],
-  ['September 2026', 'Outlets report that the performer is an AI persona built for the songwriter behind it.'],
-  ['21 October 2026', 'Mexican duo Río Roma publish their own official video: a human performance of the song.'],
-  ['From 24 October 2026', 'The English-language AI baby template takes off, using the same original audio.'],
+  ['3 August 2026', 'Release date reported by El Comercio for the original EP.'],
+  ['25 September 2026', 'El Colombiano reports on the AI artist and quotes the creator.'],
+  ['21–22 October 2026', 'El Comercio reports on the production process and the Río Roma collaboration.'],
 ];
 
 const faq = (): FaqItem[] => [
@@ -51,11 +48,16 @@ export const Route = createFileRoute('/is-bonito-bonito-ai')({
           headline: m.isai_title(),
           description: m.isai_meta_description(),
           datePublished: '2026-10-31',
-          dateModified: '2026-10-31',
-          author: { '@type': 'Organization', name: site.name },
-          publisher: { '@type': 'Organization', name: site.name },
+          dateModified: updatedDate,
+          author: organization,
+          publisher: organization,
+          image: `${site.url}/media/og-home.jpg`,
+          citation: [
+            'https://www.elcolombiano.com/amp/tendencias/bonito-bonito-historia-creador-cancion-viral-tiktok-inteligencia-artificial-GF41556033',
+          ],
           mainEntityOfPage: `${site.url}${PATH}`,
         },
+        breadcrumbs(PATH, m.isai_title()),
         faqJsonLd(faq()),
       ],
     }),
@@ -71,8 +73,7 @@ function IsAiPage() {
         <>
           <p className="lead">{m.isai_intro()}</p>
           <p>
-            {m.isai_split_text()}{' '}
-            <Link to="/thiago-navarro">{m.tn_nav_title()}</Link>
+            {m.isai_split_text()} <Link to="/thiago-navarro">{m.tn_nav_title()}</Link>
           </p>
         </>
       }
@@ -95,6 +96,7 @@ function IsAiPage() {
       <p>{m.isai_video_text()}</p>
       <p>{m.isai_video_text2()}</p>
 
+      <Sources />
       <Faq title={m.isai_faq_title()} items={faq()} />
     </GuidePage>
   );

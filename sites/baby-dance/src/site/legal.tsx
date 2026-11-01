@@ -7,11 +7,21 @@ import { m } from '~/paraglide/messages.js';
 /** Support email, forwarded to your inbox by Cloudflare Email Routing. new-site sets the domain; check-site rejects example.com. */
 export const SUPPORT_EMAIL = 'support@aibabydancing.com';
 
-export function LegalPage({ title, intro, children }: { title: string; intro: string; children: ReactNode }) {
+export function LegalPage({
+  title,
+  intro,
+  children,
+  updated,
+}: {
+  title: string;
+  intro: string;
+  children: ReactNode;
+  updated?: string;
+}) {
   return (
     <article className="legal">
       <h1>{title}</h1>
-      <p className="muted">{m.common_legal_updated({ date: m.common_legal_policy_date() })}</p>
+      <p className="muted">{m.common_legal_updated({ date: updated ?? m.common_legal_policy_date() })}</p>
       <p>{intro}</p>
       {children}
       <p>

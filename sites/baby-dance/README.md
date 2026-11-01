@@ -1,112 +1,48 @@
 # Baby Dance AI
 
-- **Status**: In development — local build passes (`pnpm check`), two launch blockers below are unresolved
-- **Domain**: aibabydancing.com
-- **Launch date**: not set
-- **Payment account**: not set (Stripe; needs a legal entity and account name)
-- **Metrics**: GA4 property, Rybbit siteId, GSC property — all unset
-- **Created**: 2026-10-30
+站点：<https://aibabydancing.com>。首页聚焦 `bonito bonito ai baby dance`；当前仅支持这一种舞蹈，不创建重复关键词落地页。以后确实支持多种舞蹈时，再将通用生成器与独立舞蹈页分开。
 
-## Keywords
+## 产品配置
 
-**Primary**: `ai baby dance`
+以 `site.config.ts`、`site.models.ts` 和 `src/models.server.ts` 为准；页面可公开的价格与积分摘要由 `src/site/product.ts` 派生。
 
-**Secondary** (map to the home page, one phrase each in title, H1, lead and FAQ):
+- 新账户获赠 10 积分，可生成一次 5 秒预览，需登录；赠送积分 7 天后过期，每个 IP 每天限一个新账户领取。
+- 12 秒完整视频消耗 30 积分。套餐为 1 个 $6.99、3 个 $18.99、10 个 $55.99；购买的积分不过期，无订阅。
+- Kling 4.0 reference 模式，compose 容器在生成后混入音轨，成品配置为 720×1280、30 fps、H.264 MP4。服务端参考片段、提示词和成本上限只存在于 `*.server.ts`。
+- `minChange: 10` 已在服务端启用；端到端成功率、交付耗时和 12 秒实际成本仍需有授权的真实任务验证。
 
-| Phrase | Where it goes |
-| --- | --- |
-| `bonito bonito ai baby dance` | title, H1, first paragraph |
-| `ai baby dance video generator` | title suffix, pricing section |
-| `ai baby dancing video` | H1 alternative, FAQ question |
-| `make my baby dance ai` | how-it-works step 1 |
-| `ai baby dance generator free` | **blocked**, see "The word free" below |
+## 内容与媒体
 
-**Long tail** (one page each, added after Search Console shows the query):
+- 四篇趋势指南保留各自搜索意图，并链接到有日期的来源；不能独立确认的平台标签明确归属于媒体报道，国籍差异不作武断判定。
+- `/baby-dance-photo-guide`：选图、失败处理、照片处理与删除请求。
+- `/baby-dance-example`：现有真实输出的独立观看页。经本地文件检查，该早期原始输出为 5.042 秒、496×864、24 fps、无音轨；它不是当前 compose 成品规格的演示，也不是成功率测试。
+- `/about`：本站编辑责任、来源政策、联系及纠错方式。法律主体名称尚未核实，不虚构。
+- `public/media/` 被 Git 忽略。构建和部署机器必须具备示例视频、海报、分享图片；`assets/baby-dance/` 下的参考视频和音轨在 R2，由服务端使用。
+- 仅首屏视频尝试自动播放；画廊按需播放，离屏或页面隐藏时暂停。保留 SSR 视频 URL 供发现。
+- 歌曲及参考素材属于各自权利人；商业使用授权仍需运营者核实。本站的免责声明不替代授权。
 
-`bonito bonito baby dance`, `cafecito baby dance`, `un cafecito riquito`, `bonito bonito baby dance no watermark`, `ai baby dance without login`, `bonito bonito capcut template`
+## 统计与搜索平台
 
-**Blog** (informational, links up to the tool): `bonito bonito lyrics english`, `is bonito bonito ai`, `thiago navarro`
+`site.config.ts` 已接入衡量 ID `G-LWBSELX9HW`（数据流 ID 为 `16245880791`，不用于网页标签）。更换账号时可配置 `ga4: 'G-…'` 或 `rybbit: { siteId: '…' }`；Rybbit 还需在 Worker 配置中设置实际 `RYBBIT_UPSTREAM`。这些统计 ID 为公开配置，不写入密钥。
 
-**Shipped title and description**
+`src/lib/track.ts` 将事件发送至已配置的 GA4/Rybbit，本地开发不发送统计，生产构建的本地预览也不会加载统计标签。部署环境使用 `APP_URL`（未设置时使用 `site.url`）判断统计是否启用；开发或本地预览的 `APP_URL` 应指向本地地址。事件覆盖上传开始、成功、失败，登录，购买，生成开始、完成及下载；不发送照片、文件名或邮箱。
 
-- Title: `Bonito Bonito AI Baby Dance Generator | AI Baby Dancing`
-- H1: `Bonito Bonito AI Baby Dance`
-- Description: `Turn one baby photo into a Bonito Bonito AI baby dance video in minutes. Song included, no watermark, no CapCut or app needed. Try the AI baby dance generator free.`
+GSC 已通过 DNS 验证网域资源 `sc-domain:aibabydancing.com`，`/sitemap.xml` 提交状态为成功，发现线上现有的 12 个页面。Bing 已通过 CNAME 验证，同一 sitemap 的处理状态为成功，发现 12 个页面。两条验证 DNS 记录需保留；现有邮件 SPF 记录未修改。About、选图指南和真实输出观看页均已上线，sitemap 共包含 12 个页面；本次已向 GSC 和 Bing 重新提交同一地址。
 
-## What the trend is
+后续由拥有账号权限的运营者完成：
 
-"Bonito, Bonito" is a song released in early August 2026, sung by **Thiago Navarro** — a virtual singer created by the Venezuelan creator **Anier Cruz**, who wrote the lyrics and used AI for the voice, music and image. The hook is "un cafecito riquito riquito" ("a little coffee, so tasty"). The baby-dance version spread from about **24 October 2026** as a CapCut template captioned "Wait until your baby starts dancing…": vertical, waist-up, the baby waves, puts both hands on its cheeks, hugs itself and sways; the most-played post had about 18 million plays by 28 October.
+1. 在 GSC 检查首页、指南和观看页的实时抓取与实际索引状态；提交成功不代表所有页面已编入索引。
+2. 在 Bing Webmaster Tools 检查 sitemap 抓取及处理结果；有需要时再配置 IndexNow。
+3. 在 GA4 的数据流增强型衡量中启用“网页加载”和“基于浏览器历史记录的页面更改”，在 DebugView 确认每次路由切换只有一次 page_view；按需将 `payment_confirmed`、`result_ready` 标为关键事件。确认分析工具收到完整漏斗及来源数据，区分自然搜索、AI 来源和付费渠道；无法识别的来源不猜测归因。
+4. 检查 Googlebot、Bingbot 与搜索抓取器未被 WAF 挑战拦截；伪装 User-Agent 的探测不能代替真实验证爬虫日志。
+5. 按周查看查询、点击、生成成功与购买转化；固定问题集、地区、日期和模型记录 AI 引用情况，不能只看个别回答。
 
-The routine people are copying is **waist-up, not full body**. The five presets in `src/routes/index.tsx` are written for that framing, with "Bonito Bonito" as the default style (waves one hand, both hands on the cheeks, a self-hug, a sway).
+`llms.txt` 只是可选摘要，不作为搜索收录或排名保证。
 
-## Competitors (measured 2026-10-30)
+## 验证与待核实项
 
-| Site | Offer | Price | Weakness to attack |
-| --- | --- | --- | --- |
-| tryh3.com/generator/bonito-bonito-ai | 1 photo → 10 s / 15 s / full 23 s, 9:16, sound on the MP4, models Seedance 2.0 Mini (default) / Fast / Pro / 2.5 / MiniMax H3, 480p default | from 20 credits (≈$0.55) per 10 s | Credit pricing is opaque (20 → 1,328 credits across options); 480p default; no clear refund copy beyond a line |
-| fungen.ai, miraflow.ai | Blog posts ranking for the trend, no generator | — | They capture the informational query; we need the blog pages |
-| YouCam Video / mobile apps | Motion swap: upload a dance video + a baby photo | app subscription | Requires an app, a dance clip and editing skill; we need zero of those |
+本地运行 `pnpm --filter @shipwords/site-baby-dance check`。预览只用于审阅；生产部署必须遵循仓库要求，从 main 单站部署并取得明确确认。
 
-**Our angle**: one photo, no prompt, no app, no CapCut — and a fixed dollar price per video instead of a credit ladder.
-
-## The two launch blockers
-
-### 1. "Song included" — not possible with the current pipeline
-
-`klingai/kling-2.6` at 720p produces **no audio track** (audio exists only at 1080p, and even then it is model-generated ambient sound, not a chosen song). The competitor's "sound on the MP4" is done by muxing the Bonito Bonito clip onto the finished video afterwards.
-
-Three ways to close this, pick one before launch:
-
-1. **Mux the audio server-side** — ship the optional `packages/jobs/compose` ffmpeg container (Cloudflare Containers, needs the Workers Paid plan, about $0.0007 per job) and mux a fixed audio bed onto every output. This is the only path that matches the title's promise.
-2. **Switch to a model with native audio** — `kling-2.6` at 1080p with `generate_audio: true` ($0.11–0.14/s ⇒ about $1.10–1.40 per 10 s). Gives beat-synced sound, **not** Bonito Bonito.
-3. **Change the promise** — drop "song included" from the title and description.
-
-**Rights note**: the song belongs to Anier Cruz. Muxing it onto paid output is commercial use of someone else's recording. Confirm the licence situation (or use a licensed/royalty-free bed that fits the same beat) before shipping option 1; do not let the copy run ahead of the right to use it.
-
-### 2. The word "free"
-
-`site.config.ts` currently sets `signup.bonusCredits: 0` and zero guest tries, because a 10 s render costs about $0.40. The shipped description says "Try the AI baby dance generator free", which is false as configured.
-
-Option A — make it true: one free video per verified account (`bonusCredits: 10`, `bonusExpiresDays: 7`, `bonusPerIpDaily: 1`). Budget $0.40 per sign-up as acquisition cost. Option B — remove "free" from the description and target `ai baby dance generator` instead. Decide before launch; a false free claim is a refund magnet and a Google quality problem.
-
-## Media is not in the repo
-
-The reference clips, the song and the sample videos are cut from third-party footage and music, so they are not committed:
-
-- `public/media/` (source clips, song, sample cuts, `og-home.jpg`) is git-ignored.
-- The R2 objects under `assets/baby-dance/` (`source-5s.mp4`, `source-12s.mp4`, `song-5s.m4a`, `song-12s.m4a`) are keyed in `src/models.server.ts`; upload them with `wrangler r2 object put baby-dance-outputs/assets/baby-dance/<file> --file=<file> --remote`.
-
-Source clips must be square-pixel: Kling rejects non-1:1 PAR with `VideoNormalize failed, non-square pixels detected` (TikTok downloads carry `sample_aspect_ratio=5760:5767`). Re-encode with `ffmpeg -vf setsar=1 -c:v libx264 -crf 16 -pix_fmt yuv420p -c:a copy -movflags +faststart` before uploading.
-
-## Model, cost and price
-
-| Item | Value |
-| --- | --- |
-| Upstream | `klingai/kling-2.6` via Yir, uploaded photo as the first frame |
-| Pinned parameters | 720p, 10 s, no audio, 9:16 (user may pick 16:9 or 1:1) |
-| Upstream cost | $0.0368–0.042/s at 720p ⇒ about $0.37–0.42 per 10 s clip (list prices read 2026-10-30) |
-| `maxCost` | $0.55 per job (headroom for a failover channel) |
-| Price | 10 credits = 1 video: $2.99 / $9.99 for 5 / $29.99 for 20 |
-| Margin | about 85% before Stripe fees |
-
-**Before launch, run three real generations** (front-facing, side-facing, and one where the baby is sitting) and record latency, whether the face and outfit held, and the billed cost. If likeness drifts, fix the prompt, not the price.
-
-## Open items
-
-- [ ] Rewrite this README: it still describes the `kling-2.6` 10 s pipeline, while the shipped site runs `klingai/kling-4.0` in reference mode (5 s preview / 12 s full) with the song muxed by the compose container.
-- [ ] Replace the face-swap check: SFace scores different babies at 0.51–0.74 and the same baby at 0.79–0.82, so the 0.45 threshold fails every real swap. Score the face-box pixel diff instead (identical 0.0 / same baby repainted 22.8 / swapped baby 59.2).
-  - Done 2026-11-01: `check.minChange: 10` on both models, the container's `faces.py` now returns `{similarity, change}`. Still open until one real job passes the check end to end.
-- [ ] Decide the audio path (blocker 1) and the free-trial question (blocker 2).
-- [ ] Run three real generations; confirm model, prompt and `maxCost`.
-- [ ] Replace the placeholder `database_id` in `wrangler.jsonc` after `pnpm wrangler d1 create baby-dance`.
-- [ ] Create the R2 bucket and the `uploads/` lifecycle rule; align the privacy page with it.
-- [ ] Fill the real support address into the policy pages and have a human read them.
-- [ ] Stripe webhook, keys, one test purchase plus a refund.
-- [ ] Hero example: before/after pairs from consenting users or our own test photos. No stock photos of other people's children.
-- [ ] Blog pages for the informational terms (`bonito bonito lyrics english`, `is bonito bonito ai`, `thiago navarro`), each linking to the tool.
-- [ ] Analytics, GSC, IndexNow.
-
-## Log
-
-- 2026-10-30 Created from `templates/ai-site`, retargeted to `ai baby dance`; model switched from image to `klingai/kling-2.6` video with the photo as first frame; five dance presets added to the tool page; guest trial and sign-up bonus disabled; `pnpm check` passes.
-- 2026-10-31 Keyword matrix and competitor set recorded; title and H1 moved onto the `bonito bonito` trend; clip length raised from 5 s to 10 s to match the competitor's floor; audio and "free" recorded as launch blockers.
+- 核实 R2 uploads 生命周期是否确实为隐私政策所述的两天；本轮未改远程配置。
+- 使用获得授权的照片补充正面、侧脸、坐姿三组真实测试，记录样本条件、耗时、最终文件参数、费用和失败原因，再发布统计。
+- 核实素材许可、实际运营主体、支持邮箱收件能力、支付测试及退款链路；本轮不执行付费生成或支付。

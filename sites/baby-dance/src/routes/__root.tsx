@@ -11,13 +11,14 @@ import { AccountDialog, AccountLink } from '~/site/account';
 import { GUIDES } from '~/site/guide';
 import { SUPPORT_EMAIL } from '~/site/legal';
 import { PricingDialog, PricingLink } from '~/site/pricing';
+import { organization } from '~/site/product';
 import { openSignIn, promptGoogleOneTap, SignInDialog } from '~/site/sign-in';
 import appCss from '~/site/styles.css?url';
 import site from '../../site.config';
 
 export const Route = createRootRoute({
   loader: () => getPublicConfig(),
-  head: () => ({
+  head: ({ loaderData }) => ({
     meta: [{ charSet: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
     links: [
       { rel: 'stylesheet', href: appCss },
@@ -33,7 +34,13 @@ export const Route = createRootRoute({
       { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
     ],
     // Analytics scripts are skipped in local dev so dev traffic stays out of reports.
-    scripts: import.meta.env.DEV ? [] : analyticsScripts(site),
+    scripts: [
+      {
+        type: 'application/ld+json',
+        children: JSON.stringify({ '@context': 'https://schema.org', ...organization }),
+      },
+      ...(import.meta.env.DEV || !loaderData?.analyticsEnabled ? [] : analyticsScripts(site)),
+    ],
   }),
   shellComponent: Document,
   component: Layout,
@@ -130,6 +137,7 @@ function Layout() {
       <footer className="site-footer">
         <span>{m.common_footer_notice({ year: new Date().getFullYear(), name: site.name })}</span>
         <nav>
+          <Link to="/about">About</Link>
           <Link to="/privacy">{m.common_footer_privacy()}</Link>
           <Link to="/terms">{m.common_footer_terms()}</Link>
           <Link to="/refunds">{m.common_footer_refunds()}</Link>
@@ -164,7 +172,13 @@ function LocaleToggle() {
       aria-label={label}
       title={label}
       onClick={() => setLocale(zh ? 'en' : 'zh')}
-      style={{ padding: '0.2rem 0.6rem', borderRadius: 999, fontSize: 12, fontWeight: 700, fontFamily: 'inherit' }}
+      style={{
+        padding: '0.2rem 0.6rem',
+        borderRadius: 999,
+        fontSize: 12,
+        fontWeight: 700,
+        fontFamily: 'inherit',
+      }}
     >
       {zh ? 'ZH' : 'EN'}
     </button>

@@ -1,11 +1,10 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "home_meta_title": "Bonito Bonito AI 宝宝跳舞生成器 | AI 宝宝跳舞视频",
-  "home_meta_description": "一张宝宝照片，几分钟生成 Bonito Bonito AI 宝宝跳舞视频。自带原曲、无水印、不用 CapCut、不用装 App。AI 宝宝跳舞生成器免费试用。",
+  "home_meta_description": "上传一张照片，制作 Bonito Bonito AI 宝宝舞蹈视频。新账户可免费预览 5 秒，需登录；12 秒完整视频 {price} 起，无水印。",
   "home_eyebrow": "全网都在抄的那支舞，主角换成你家宝宝",
   "home_title": "把你家宝宝放进 Bonito Bonito AI 宝宝跳舞",
   "home_lead": "上传一张照片，这个 AI 宝宝跳舞生成器就会把它变成一段竖屏视频：宝宝在跳大家都在抄的那支舞——动作一样、镜头一样、歌也一样。让宝宝跳起来只要一张照片；不用剪辑、不用 CapCut、不用装 App。新账号第一次 5 秒预览免费。",
-
   "home_sample_tabs_label": "示例视频",
   "home_sample_tab_preview": "5 秒预览",
   "home_sample_tab_full": "12 秒完整",
@@ -17,7 +16,6 @@
   "home_sample_caption_real": "本站生成器跑出来的原始 5 秒成品，未经修饰。",
   "home_media_alt": "{label}——用本站生成的 AI 宝宝跳舞视频实拍成品",
   "home_meta_image_alt": "穿蓝色上衣的宝宝在跳 Bonito Bonito 动作，双手举起，720×1280 竖屏画面",
-
   "home_upload_title": "把宝宝照片拖到这里",
   "home_upload_hint": "或点击选择 · JPG / PNG / WebP · 只要一张脸",
   "home_upload_drop_active": "松手即可上传",
@@ -29,11 +27,9 @@
   "home_trust_watermark": "无水印",
   "home_trust_refund": "生成失败自动退款",
   "home_trust_format": "720×1280 MP4，自带原曲",
-
   "home_gallery_kicker": "先看效果，再决定付不付",
   "home_gallery_title": "三段真实视频，全部出自本站",
   "home_gallery_lead": "没有素材库，也没有摆拍的图：这一页每一段视频，都是你下单时会走的那条流水线跑出来的。竖屏、720×1280，MP4 里已经带好原曲。",
-
   "home_trend_kicker": "重点在动作，不在滤镜",
   "home_trend_title": "Bonito Bonito 宝宝舞到底在跳什么",
   "home_trend_lead": "Bonito, bonito 在西班牙语里是“好看、好看”，整首歌都用指小词唱：un cafecito（一小杯咖啡）、riquito（真好吃）、una sonrisita（一个小微笑）。Bonito Bonito 宝宝舞就是把这份清单变成手势，而且严格跟着歌词的顺序——bonito, bonito、un cafecito、riquito, riquito、una sonrisita——所以看到的每个动作，都对得上一句听到的词。一句一个手势，循环起来，所以八秒的片段也像一整支舞。",
@@ -47,7 +43,6 @@
   "home_trend_move_4_text": "一根手指点到下巴。这是“笑一个”的提示，也是这类视频最常被截停的那一秒。",
   "home_trend_note": "12 秒版本在开头加了挥手、结尾加了左右摇摆，所以看起来是一整支舞，而不是四段拼起来的片段。",
   "home_trend_link": "看完整逐句翻译",
-
   "home_steps_kicker": "前后两分钟",
   "home_steps_title": "AI 宝宝跳舞视频生成器是怎么工作的",
   "home_step_upload_title": "上传一张照片",
@@ -56,7 +51,6 @@
   "home_step_pick_text": "5 秒预览是双手托腮那一段；12 秒完整版从第一次挥手一路跳到最后的摇摆。",
   "home_step_post_title": "下载，直接发",
   "home_step_post_text": "拿到的是已经混好原曲的 MP4，尺寸适配 TikTok、Reels 和 Shorts，没有水印，看起来就像你自己拍的。",
-
   "home_why_kicker": "为什么效果站得住",
   "home_why_title": "这是换人，不是凭空想象",
   "home_why_lead": "大多数 AI 跳舞工具是用文字描述硬生成一个宝宝，脸会飘、身体会乱长。这一套保留原片的真实表演，只把里面的人换掉。",
@@ -68,11 +62,9 @@
   "home_why_song_text": "音轨用的就是原曲，在视频生成完成后混进 MP4——不是模型哼一段差不多的，也不是要你自己去对轨的静音片。",
   "home_why_now_title": "对准当下这波热度",
   "home_why_now_text": "用的是 2026 年下半年刷屏的 Bonito Bonito 动作。热度换了，本站换一支原片就行，底下这套流程完全不用动。",
-
   "home_pricing_kicker": "按积分买，没有订阅",
   "home_pricing_title": "一条一付，不做月费",
-  "home_pricing_lead": "新账号送 10 积分，正好一条 5 秒预览。12 秒完整版 30 积分，一个套餐够做两条。",
-
+  "home_pricing_lead": "新账户可免费预览 5 秒，需登录；赠送积分 {days} 天后过期，每个 IP 每天限一个新账户领取。完整视频套餐：{offers}。",
   "home_faq_kicker": "家长真正会问的问题",
   "home_faq_title": "Bonito Bonito AI 宝宝跳舞常见问题",
   "home_faq_what_q": "Bonito Bonito AI 宝宝跳舞是什么？",
@@ -82,9 +74,9 @@
   "home_faq_how_q": "AI 宝宝跳舞视频怎么做？",
   "home_faq_how_a": "用页面顶部的生成器：上传一张正脸照片，选 5 秒或 12 秒，点按钮即可。用邮箱登录一下，渲染在后台跑，出片后邮件通知你。",
   "home_faq_free_q": "这个 AI 宝宝跳舞生成器免费吗？",
-  "home_faq_free_a": "第一次 5 秒预览免费：新账号送 10 积分，正好一条预览。12 秒完整版是付费产品，30 积分。生成需要登录，因为任务要挂在账号上，方便你随时回来取片。",
+  "home_faq_free_a": "新账户可获得 {credits} 积分，足够制作一次 5 秒预览。需登录，赠送积分 {days} 天后过期，每个 IP 每天限一个新账户领取。12 秒完整视频 {price} 起。",
   "home_faq_cost_q": "一条视频多少钱？",
-  "home_faq_cost_a": "{preview} 10 积分，{full} 30 积分。积分套餐：30 积分 $6.99、90 积分 $18.99、300 积分 $55.99。生成失败会自动退回余额。",
+  "home_faq_cost_a": "5 秒预览需要 {preview} 积分，12 秒完整视频需要 {full} 积分。套餐：{offers}。生成失败后，积分自动退回余额。",
   "home_faq_time_q": "要等多久？",
   "home_faq_time_a": "通常两分钟左右，排队多时最多五分钟。中途可以关掉页面，任务在后台继续跑，出片后邮件通知。",
   "home_faq_capcut_q": "需要 CapCut 或者别的剪辑 App 吗？",
@@ -105,11 +97,9 @@
   "home_faq_post_a": "可以。文件是 720×1280 的 H.264 MP4，TikTok、Instagram Reels、YouTube Shorts、WhatsApp 都直接接受，不用转码也不用重新导出。",
   "home_faq_fail_q": "生成失败怎么办？",
   "home_faq_fail_a": "积分会自动退回余额，任务标记为失败，不会给你一条坏文件。你可以马上换一张照片重试。",
-
   "home_closer_title": "离宝宝跳舞，只差一张照片",
   "home_closer_text": "上传照片、选个时长，趁这波热度还在就发出去。第一次 5 秒预览我们请。",
   "home_closer_cta": "让我家宝宝跳起来",
-
   "home_tool_upload_failed": "上传失败，请换一张 10MB 以内的 JPG 或 PNG。",
   "home_tool_reference_alt": "你上传的宝宝照片",
   "home_tool_starting": "正在提交…",

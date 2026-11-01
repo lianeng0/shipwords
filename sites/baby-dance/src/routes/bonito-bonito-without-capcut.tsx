@@ -1,8 +1,10 @@
 import { pageHead } from '@shipwords/core/seo';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Faq, type FaqItem, faqJsonLd, GuidePage, Table } from '~/site/guide';
 import { m } from '~/paraglide/messages.js';
+import { Faq, type FaqItem, faqJsonLd, GuidePage, Table } from '~/site/guide';
 import { formatPrice } from '~/site/pricing';
+import { fullCredits } from '~/site/product';
+import { Sources } from '~/site/sources';
 import site from '../../site.config';
 
 // Targets "bonito bonito without capcut", "bonito bonito baby video no watermark", "bonito bonito ai baby template".
@@ -17,24 +19,26 @@ const PACK = site.products[2];
 const PACK_EACH = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: PACK.price.currency,
-}).format(PACK.price.amount / 100 / 10);
+}).format(PACK.price.amount / 100 / (PACK.credits / fullCredits));
 
 const LIMITS = [
-  "Face: the template drops your photo into a fixed slot, so framing, head size and lighting are whatever the template decided.",
-  'Length: usually one fixed cut, and that cut can change when the template is updated.',
-  'Export: a watermark unless you pay for the app, at whatever resolution the template ships.',
-  'Audio: borrowed from the platform, which is fine to post there and awkward anywhere else.',
-  'Reruns: if the render looks wrong you re-run the whole template, not the shot you dislike.',
+  'Photo requirements, framing and motion depend on the template you choose.',
+  'Length and resolution depend on the template and available export settings.',
+  'Check the export screen for watermark options and any paid assets.',
+  'Check music permissions for the platform and use you have in mind.',
 ];
-
 const COMPARE: [string, string, string][] = [
-  ['Your baby', 'A fixed photo slot, framed by the template', 'Your uploaded photo, matched frame by frame'],
-  ['Audio', 'Platform sound', 'The original track, laid back on the render'],
-  ['Length', 'Whatever the template ships', '5 or 12 seconds, your choice'],
-  ['Resolution', "The template's", '720 × 1280, 30 fps'],
-  ['Watermark', 'Unless you pay for the app', 'None'],
-  ['The file', 'Lives in the app until you export it', 'MP4 download, use it anywhere'],
-  ['Price', 'Free', `${formatPrice(site.products[0])} for 12 s, ${PACK_EACH} each in the 10-pack`],
+  ['Input', 'Depends on the template', 'One uploaded photo'],
+  ['Audio', 'Check the selected sound', 'The original track, laid back on the render'],
+  ['Length', 'Check the selected template', '5 or 12 seconds, your choice'],
+  ['Resolution', 'Check export settings', '720 × 1280, 30 fps'],
+  ['Watermark', 'Check export settings and paid assets', 'None'],
+  ['The file', 'Export from CapCut', 'MP4 download'],
+  [
+    'Price',
+    'Check the template and export options',
+    `${formatPrice(site.products[0])} for 12 s, ${PACK_EACH} each in the 10-pack`,
+  ],
 ];
 
 const faq = (): FaqItem[] => [
@@ -58,9 +62,21 @@ export const Route = createFileRoute('/bonito-bonito-without-capcut')({
           description: m.nc_meta_description(),
           totalTime: 'PT3M',
           step: [
-            { '@type': 'HowToStep', name: 'Upload one photo', text: 'Face forward, even light, no sunglasses.' },
-            { '@type': 'HowToStep', name: 'Pick a length', text: '5 seconds free with the sign-up credits, or 12 seconds.' },
-            { '@type': 'HowToStep', name: 'Download the MP4', text: '720 × 1280, original song, no watermark.' },
+            {
+              '@type': 'HowToStep',
+              name: 'Upload one photo',
+              text: 'Face forward, even light, no sunglasses.',
+            },
+            {
+              '@type': 'HowToStep',
+              name: 'Pick a length',
+              text: '5 seconds free with the sign-up credits, or 12 seconds.',
+            },
+            {
+              '@type': 'HowToStep',
+              name: 'Download the MP4',
+              text: '720 × 1280, original song, no watermark.',
+            },
           ],
         },
         faqJsonLd(faq()),
@@ -103,6 +119,7 @@ function NoCapcutPage() {
       <p>{m.nc_quality_text()}</p>
       <p>{m.nc_quality_text2()}</p>
 
+      <Sources items={['capcut']} />
       <Faq title={m.nc_faq_title()} items={faq()} />
     </GuidePage>
   );

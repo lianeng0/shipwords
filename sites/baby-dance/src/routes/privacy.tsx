@@ -16,7 +16,11 @@ export const Route = createFileRoute('/privacy')({
 
 function PrivacyPage() {
   return (
-    <LegalPage title={m.legal_privacy_title()} intro={m.legal_privacy_intro({ siteName: site.name })}>
+    <LegalPage
+      updated="2026-11-01"
+      title={m.legal_privacy_title()}
+      intro={m.legal_privacy_intro({ siteName: site.name })}
+    >
       <h2>{m.legal_privacy_collect_heading()}</h2>
       <p>{m.legal_privacy_collect_body()}</p>
 

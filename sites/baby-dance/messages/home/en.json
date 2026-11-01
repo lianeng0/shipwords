@@ -1,11 +1,10 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "home_meta_title": "Bonito Bonito AI Baby Dance Generator | AI Baby Dancing",
-  "home_meta_description": "Turn one baby photo into a Bonito Bonito AI baby dance video in minutes. Song included, no watermark, no CapCut, no app. Try the AI baby dance generator free.",
+  "home_meta_description": "Create a Bonito Bonito AI baby dance video from one photo. One free 5-second preview for new accounts; sign-in required. 12-second videos from {price}. No watermark.",
   "home_eyebrow": "The trend, with your baby in it",
   "home_title": "Put your baby in the Bonito Bonito AI baby dance",
   "home_lead": "Upload one photo and this AI baby dance generator turns it into a vertical video of your baby doing the routine everyone is copying — same moves, same framing, same song. Making your baby dance takes one photo: no editing, no CapCut, no app. The first 5-second preview is free with a new account.",
-
   "home_sample_tabs_label": "Sample videos",
   "home_sample_tab_preview": "5-second preview",
   "home_sample_tab_full": "12-second full",
@@ -17,7 +16,6 @@
   "home_sample_caption_real": "An unedited 5-second result from this generator, kept as it came out.",
   "home_media_alt": "{label} — a real AI baby dance video made with this tool",
   "home_meta_image_alt": "A baby in a blue shirt dancing the Bonito Bonito routine, hands up, in a vertical 720×1280 frame",
-
   "home_upload_title": "Drop a baby photo here",
   "home_upload_hint": "or tap to choose · JPG, PNG or WebP · one face",
   "home_upload_drop_active": "Release to add the photo",
@@ -29,11 +27,9 @@
   "home_trust_watermark": "No watermark",
   "home_trust_refund": "Failed renders refunded",
   "home_trust_format": "720×1280 MP4 with the song",
-
   "home_gallery_kicker": "See it before you pay",
   "home_gallery_title": "Three real videos from this tool",
   "home_gallery_lead": "No stock footage and no mockups: every clip on this page came out of the same pipeline that runs your order. Vertical, 720×1280, with the song already on the MP4.",
-
   "home_trend_kicker": "The dance, not a filter",
   "home_trend_title": "What the Bonito Bonito baby dance is, move by move",
   "home_trend_lead": "Bonito, bonito is Spanish for “nice, nice”, sung in diminutives: un cafecito (a little coffee), riquito (so tasty), una sonrisita (a little smile). The Bonito Bonito baby dance is that list turned into hands, in the song's order — bonito, bonito, un cafecito, riquito, riquito, una sonrisita — so every move you see matches a line you hear. One gesture per line, looped, which is why an eight-second cut already reads as a whole dance.",
@@ -47,7 +43,6 @@
   "home_trend_move_4_text": "One finger under the chin. The smile cue, and the second most of these videos get cut at.",
   "home_trend_note": "The 12-second version adds the wave at the start and the sway at the end, so it plays as a routine rather than four separate clips.",
   "home_trend_link": "Read the full line-by-line translation",
-
   "home_steps_kicker": "Two minutes, start to finish",
   "home_steps_title": "How the AI baby dance video generator works",
   "home_step_upload_title": "Upload one photo",
@@ -56,7 +51,6 @@
   "home_step_pick_text": "The 5-second preview covers the hands-on-cheeks part. The 12-second cut plays the whole routine, from the first wave to the last sway.",
   "home_step_post_title": "Download and post",
   "home_step_post_text": "You get an MP4 with the song already mixed in, sized for TikTok, Reels and Shorts. Watermark-free, so it looks like you filmed it.",
-
   "home_why_kicker": "Why it holds up",
   "home_why_title": "It is a swap, not a guess",
   "home_why_lead": "Most AI dance tools invent a baby from a text prompt, so the face drifts and the body does something strange. This one keeps the original performance and only replaces the person.",
@@ -68,11 +62,9 @@
   "home_why_song_text": "The audio is the original track, muxed onto the MP4 afterwards — not a model humming something similar, and not silence you have to fix in an editor.",
   "home_why_now_title": "Made for the current trend",
   "home_why_now_text": "The clip is the Bonito Bonito routine that took over feeds in late 2026. When the trend moves on, this site gets a new clip; the workflow underneath stays the same.",
-
   "home_pricing_kicker": "Credits, no subscription",
   "home_pricing_title": "Pay once per video",
-  "home_pricing_lead": "New accounts get 10 credits — exactly one 5-second preview. A 12-second video costs 30 credits, so one pack covers two of them.",
-
+  "home_pricing_lead": "One free 5-second preview for new accounts. Sign-in required; bonus credits expire after {days} days, limited to one new account per IP per day. Full videos: {offers}.",
   "home_faq_kicker": "Questions parents actually ask",
   "home_faq_title": "Bonito Bonito AI baby dance FAQ",
   "home_faq_what_q": "What is the Bonito Bonito AI baby dance?",
@@ -82,9 +74,9 @@
   "home_faq_how_q": "How do I make an AI baby dancing video?",
   "home_faq_how_a": "Use the generator at the top of this page: upload one front-facing photo, pick 5 or 12 seconds, then press the button. Sign in with an email so the render can finish in the background — we email you when it is ready.",
   "home_faq_free_q": "Is the AI baby dance generator free?",
-  "home_faq_free_a": "The first 5-second preview is free: a new account gets 10 credits, which is exactly one preview. The 12-second video is the paid product at 30 credits. Trying the tool does need a sign-in, because renders are tied to an account you can come back to.",
+  "home_faq_free_a": "New accounts get {credits} credits, enough for one 5-second preview. Sign-in required; bonus credits expire after {days} days, limited to one new account per IP per day. A full 12-second video costs {price}.",
   "home_faq_cost_q": "How much does one video cost?",
-  "home_faq_cost_a": "A {preview} costs 10 credits and a {full} costs 30. Credits come in packs of 30 for $6.99, 90 for $18.99 and 300 for $55.99. Failed renders are refunded to your balance automatically.",
+  "home_faq_cost_a": "A 5-second preview costs {preview} credits and a 12-second full video costs {full} credits. Packs: {offers}. Failed renders are refunded to your balance automatically.",
   "home_faq_time_q": "How long does it take?",
   "home_faq_time_a": "Usually about two minutes, and up to five when the queue is busy. You can close the tab — the render keeps going and we email you when the video is ready.",
   "home_faq_capcut_q": "Do I need CapCut or another editing app?",
@@ -105,11 +97,9 @@
   "home_faq_post_a": "Yes. The file is a 720×1280 H.264 MP4, which TikTok, Instagram Reels, YouTube Shorts and WhatsApp all accept directly. No conversion step and no re-export.",
   "home_faq_fail_q": "What happens if the video fails?",
   "home_faq_fail_a": "Your credits go back to your balance automatically and the job is marked as failed, instead of handing you a broken file. You can retry straight away with a different photo.",
-
   "home_closer_title": "Your baby's dance is one photo away",
   "home_closer_text": "Upload a photo, pick a length, and post it before the trend moves on. The first 5-second preview is on us.",
   "home_closer_cta": "Make my baby dance",
-
   "home_tool_upload_failed": "Upload failed. Try a JPG or PNG under 10 MB.",
   "home_tool_reference_alt": "Baby photo you uploaded",
   "home_tool_starting": "Starting…",

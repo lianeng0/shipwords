@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { m } from '~/paraglide/messages.js';
+import { freeConditions, priceSummary } from './product';
 
 // Shared by the four guide pages (lyrics, is-it-AI, Thiago Navarro, without CapCut). Each page answers one question
 // people actually search for around the trend, and links to the others: that is the internal-link ring that makes a
@@ -9,9 +10,19 @@ import { m } from '~/paraglide/messages.js';
 
 // Claims on these pages are sourced (El Tiempo, La FM, El Comercio, platform labels). When a fact changes, update the
 // date here as well so the pages do not advertise a stale check.
-export const CHECKED = '31 October 2026';
+export const CHECKED = '1 November 2026';
 
 export const GUIDES = [
+  {
+    path: '/baby-dance-photo-guide',
+    title: () => 'Baby dance photo and privacy guide',
+    description: () => 'Choose a photo, understand storage, and request removal.',
+  },
+  {
+    path: '/baby-dance-example',
+    title: () => 'Watch a real baby dance output',
+    description: () => 'An existing 5-second output with verified file details.',
+  },
   {
     path: '/bonito-bonito-lyrics-english',
     title: m.lyr_nav_title,
@@ -108,13 +119,16 @@ export function GuidePage({
       <p className="kicker">{m.guide_kicker()}</p>
       <h1>{title}</h1>
       <p className="mono">{m.guide_updated({ date: CHECKED })}</p>
+      <p>
+        By <Link to="/about">Baby Dance AI editorial team</Link>
+      </p>
       <div className="guide-intro">{intro}</div>
       {children}
       <div className="guide-cta">
         <a className="button primary" href="/#make">
           {m.guide_cta()}
         </a>
-        <span className="muted">{m.guide_cta_note()}</span>
+        <span className="muted">{m.guide_cta_note({ conditions: freeConditions() })}</span>
       </div>
       <nav className="guide-more" aria-label={m.guide_more_label()}>
         <h2>{m.guide_more_heading()}</h2>
@@ -127,7 +141,7 @@ export function GuidePage({
           ))}
           <li>
             <a href="/#pricing">{m.guide_pricing_link()}</a>
-            <span className="muted"> — {m.guide_pricing_description()}</span>
+            <span className="muted"> — {m.guide_pricing_description({ offers: priceSummary() })}</span>
           </li>
         </ul>
       </nav>

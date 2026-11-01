@@ -1,7 +1,9 @@
 import { pageHead } from '@shipwords/core/seo';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Faq, type FaqItem, faqJsonLd, GuidePage, Table } from '~/site/guide';
 import { m } from '~/paraglide/messages.js';
+import { Faq, type FaqItem, faqJsonLd, GuidePage, Table } from '~/site/guide';
+import { breadcrumbs, organization, updatedDate } from '~/site/product';
+import { Sources } from '~/site/sources';
 import site from '../../site.config';
 
 // Targets "thiago navarro", "who is thiago navarro", "thiago navarro bonito bonito singer". A name query, so the page
@@ -15,12 +17,7 @@ const FACTS: [string, string][] = [
   ['Created by', 'Anier Cruz Revilla, credited as writer and composer'],
   ['Earlier release', 'Quédate con lo sencillo'],
   ['Breakout single', 'Bonito, Bonito, released 3 August 2026'],
-  ['Platform labels', 'Spotify: AI Persona. YouTube: created with AI'],
-  [
-    'Reach, late September 2026',
-    'More than 8.3 million views on the official video and about 1.5 million monthly listeners, per El Tiempo',
-  ],
-  ['Live shows', 'None'],
+  ['Platform labels', 'El Comercio reports Spotify: AI Persona; YouTube: created with AI (October 2026)'],
 ];
 
 const faq = (): FaqItem[] => [
@@ -43,11 +40,16 @@ export const Route = createFileRoute('/thiago-navarro')({
           headline: m.tn_title(),
           description: m.tn_meta_description(),
           datePublished: '2026-10-31',
-          dateModified: '2026-10-31',
-          author: { '@type': 'Organization', name: site.name },
-          publisher: { '@type': 'Organization', name: site.name },
+          dateModified: updatedDate,
+          author: organization,
+          publisher: organization,
+          image: `${site.url}/media/og-home.jpg`,
+          citation: [
+            'https://www.elcolombiano.com/amp/tendencias/bonito-bonito-historia-creador-cancion-viral-tiktok-inteligencia-artificial-GF41556033',
+          ],
           mainEntityOfPage: `${site.url}${PATH}`,
         },
+        breadcrumbs(PATH, m.tn_title()),
         faqJsonLd(faq()),
       ],
     }),
@@ -84,6 +86,7 @@ function ThiagoPage() {
       <p>{m.tn_trend_text()}</p>
       <p>{m.tn_trend_text2()}</p>
 
+      <Sources />
       <Faq title={m.tn_faq_title()} items={faq()} />
     </GuidePage>
   );

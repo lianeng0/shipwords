@@ -1,7 +1,9 @@
 import { pageHead } from '@shipwords/core/seo';
 import { createFileRoute } from '@tanstack/react-router';
-import { Faq, type FaqItem, faqJsonLd, GuidePage, Table } from '~/site/guide';
 import { m } from '~/paraglide/messages.js';
+import { Faq, type FaqItem, faqJsonLd, GuidePage, Table } from '~/site/guide';
+import { breadcrumbs, organization, updatedDate } from '~/site/product';
+import { Sources } from '~/site/sources';
 import site from '../../site.config';
 
 // Targets "bonito bonito lyrics english", "bonito bonito lyrics meaning", "un cafecito riquito meaning".
@@ -15,7 +17,10 @@ const FACTS = [
   ['Performer', 'Thiago Navarro Music'],
   ['Released', '3 August 2026'],
   ['Writer and composer', 'Anier Cruz Revilla'],
-  ['Performer status', 'AI persona — Spotify labels the profile AI Persona, YouTube marks the video as created with AI'],
+  [
+    'Performer status',
+    'AI persona — Spotify labels the profile AI Persona, YouTube marks the video as created with AI',
+  ],
   ['First wave', 'Latin America and Spain, August–September 2026'],
 ];
 
@@ -60,11 +65,16 @@ export const Route = createFileRoute('/bonito-bonito-lyrics-english')({
           headline: m.lyr_title(),
           description: m.lyr_meta_description(),
           datePublished: '2026-10-31',
-          dateModified: '2026-10-31',
-          author: { '@type': 'Organization', name: site.name },
-          publisher: { '@type': 'Organization', name: site.name },
+          dateModified: updatedDate,
+          author: organization,
+          publisher: organization,
+          image: `${site.url}/media/og-home.jpg`,
+          citation: [
+            'https://www.elcolombiano.com/amp/tendencias/bonito-bonito-historia-creador-cancion-viral-tiktok-inteligencia-artificial-GF41556033',
+          ],
           mainEntityOfPage: `${site.url}${PATH}`,
         },
+        breadcrumbs(PATH, m.lyr_title()),
         faqJsonLd(faq()),
       ],
     }),
@@ -109,6 +119,7 @@ function LyricsPage() {
       <p>{m.lyr_use_text()}</p>
       <p>{m.lyr_use_text2()}</p>
 
+      <Sources />
       <Faq title={m.lyr_faq_title()} items={faq()} />
     </GuidePage>
   );
