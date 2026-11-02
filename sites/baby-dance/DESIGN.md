@@ -30,6 +30,9 @@ Two colours do the work: coral for action, mint for "done". No gradients, no gla
 
 ## First screen
 
+- Free-preview entry: keep the outcome headline and one short sentence, then the upload card. The card explains that new accounts receive one free 5-second preview and sign-in is required. Before a photo is selected, the primary button opens the photo picker instead of appearing disabled. Signed-in users still see the actual credit cost; do not promise repeat free renders.
+- On phones, reduce hero spacing so the upload action is visible in the first screen. Keep the photo target at least 120px high and retain explicit length choices.
+
 - Mobile: the upload card first — a big dashed rounded box reading "Drop a baby photo here", tap target at least 120px tall — then the five dance style chips, then one primary button.
 - Desktop: two columns. Left, the upload card, style chips and button stacked; right, a short looping sample clip (muted, autoplay) of a real result, so the promise is shown before it is read.
 - The headline states the outcome, not the technology: "Make your baby dance", not "AI video generation".

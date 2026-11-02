@@ -274,6 +274,14 @@ a {
   box-shadow: var(--shadow-soft);
 }
 
+.preview-note {
+  margin: 0;
+  color: var(--color-coral-deep);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+
 .drop-zone {
   position: relative;
   display: grid;
@@ -1462,4 +1470,32 @@ label {
   margin: 1.5rem auto;
   border-radius: var(--radius-card);
   background: #f6ece1;
+}
+
+@media (max-width: 40rem) {
+  .hero {
+    padding-top: 1rem;
+    gap: 1.25rem;
+  }
+
+  .hero-copy {
+    gap: 0.75rem;
+  }
+
+  .hero .lead {
+    font-size: 1rem;
+  }
+
+  .drop-zone {
+    min-height: 120px;
+    padding: 0.75rem;
+  }
+
+  .versions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .version {
+    padding-inline: 0.6rem;
+  }
 }

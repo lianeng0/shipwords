@@ -4,6 +4,10 @@ import { track } from '~/lib/track';
 /** Keep source URLs in SSR HTML for discovery; only the hero autoplays. */
 export function SampleVideo({ clip, label, hero = false }: { clip: string; label: string; hero?: boolean }) {
   const ref = useRef<HTMLVideoElement>(null);
+  const automatic = useRef(false);
+  const manual = useRef(false);
+  const autoplayTracked = useRef(false);
+  const milestones = useRef(new Set<number>());
   useEffect(() => {
     const video = ref.current;
     if (!video) return;
@@ -12,7 +16,12 @@ export function SampleVideo({ clip, label, hero = false }: { clip: string; label
     const observer = new IntersectionObserver(([entry]) => {
       if (!entry) return;
       if (!entry.isIntersecting) video.pause();
-      else if (hero && !reducedMotion.matches && !document.hidden) void video.play().catch(() => {});
+      else if (hero && !reducedMotion.matches && !document.hidden && video.paused) {
+        automatic.current = true;
+        void video.play().catch(() => {
+          automatic.current = false;
+        });
+      }
     });
     observer.observe(video);
     const onVisibility = () => {
@@ -37,7 +46,33 @@ export function SampleVideo({ clip, label, hero = false }: { clip: string; label
       controls
       preload={hero ? 'metadata' : 'none'}
       aria-label={label}
-      onPlay={() => track('sample_play', { clip })}
+      onPointerDown={() => {
+        automatic.current = false;
+      }}
+      onKeyDown={() => {
+        automatic.current = false;
+      }}
+      onPlay={() => {
+        if (automatic.current) {
+          automatic.current = false;
+          manual.current = false;
+          if (!autoplayTracked.current) track('sample_autoplay', { clip });
+          autoplayTracked.current = true;
+        } else {
+          manual.current = true;
+          track('sample_play', { clip });
+        }
+      }}
+      onTimeUpdate={(event) => {
+        const video = event.currentTarget;
+        if (!manual.current || !Number.isFinite(video.duration) || video.duration <= 0) return;
+        const percent = (video.currentTime / video.duration) * 100;
+        for (const milestone of [25, 50, 75]) {
+          if (percent < milestone || milestones.current.has(milestone)) continue;
+          milestones.current.add(milestone);
+          track('sample_progress', { clip, percent: milestone });
+        }
+      }}
     />
   );
 }

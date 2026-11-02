@@ -27,13 +27,19 @@
 
 `src/lib/track.ts` 将事件发送至已配置的 GA4/Rybbit，本地开发不发送统计，生产构建的本地预览也不会加载统计标签。部署环境使用 `APP_URL`（未设置时使用 `site.url`）判断统计是否启用；开发或本地预览的 `APP_URL` 应指向本地地址。事件覆盖上传开始、成功、失败，登录，购买，生成开始、完成及下载；不发送照片、文件名或邮箱。
 
+漏斗从 `generator_view`（上传卡片至少 30% 可见）开始，依次观察 `upload_picker_open`、`photo_selected`、`upload_rejected`、`upload_started`、`upload_completed`、`generate_click`、`generate_started`、`result_ready`、`result_download`。`upload_rejected.reason` 区分文件格式和大小；选图器取消不会伪造选图事件。站内入口统一使用 `ui_location`，不再用 `source` 干扰营销来源。
+
+视频自动播放记为 `sample_autoplay`，用户主动启动记为 `sample_play`；只有主动播放记录 `sample_progress` 的 25/50/75 百分比节点，每个播放器实例每个节点最多一次。进度节点表示播放位置，不作为精确观看时长。
+
+运营者自测可访问 `https://aibabydancing.com/?analytics=off`：当前浏览器持久关闭 GA4 收集及自定义事件；访问 `?analytics=on` 恢复。偏好保存在该浏览器的本地存储，清除站点数据后需重新设置；不按国家过滤流量。外部推广链接应同时提供 `utm_source`、`utm_medium` 和 `utm_campaign`，不要给站内链接加 UTM。过去已收集的测试流量不会被此开关删除。
+
 GSC 已通过 DNS 验证网域资源 `sc-domain:aibabydancing.com`，`/sitemap.xml` 提交状态为成功，发现线上现有的 12 个页面。Bing 已通过 CNAME 验证，同一 sitemap 的处理状态为成功，发现 12 个页面。两条验证 DNS 记录需保留；现有邮件 SPF 记录未修改。About、选图指南和真实输出观看页均已上线，sitemap 共包含 12 个页面；本次已向 GSC 和 Bing 重新提交同一地址。
 
 后续由拥有账号权限的运营者完成：
 
 1. 在 GSC 检查首页、指南和观看页的实时抓取与实际索引状态；提交成功不代表所有页面已编入索引。
 2. 在 Bing Webmaster Tools 检查 sitemap 抓取及处理结果；有需要时再配置 IndexNow。
-3. 在 GA4 的数据流增强型衡量中启用“网页加载”和“基于浏览器历史记录的页面更改”，在 DebugView 确认每次路由切换只有一次 page_view；按需将 `payment_confirmed`、`result_ready` 标为关键事件。确认分析工具收到完整漏斗及来源数据，区分自然搜索、AI 来源和付费渠道；无法识别的来源不猜测归因。
+3. GA4 已将 `payment_confirmed`、`result_ready` 标为关键事件，不设置默认金额；已注册事件维度 `ui_location`、`reason`。在数据流增强型衡量中确认“网页加载”和“基于浏览器历史记录的页面更改”，在 DebugView 确认每次路由切换只有一次 page_view。部署后确认分析工具收到完整漏斗及来源数据，区分自然搜索、AI 来源和付费渠道；无法识别的来源不猜测归因。
 4. 检查 Googlebot、Bingbot 与搜索抓取器未被 WAF 挑战拦截；伪装 User-Agent 的探测不能代替真实验证爬虫日志。
 5. 按周查看查询、点击、生成成功与购买转化；固定问题集、地区、日期和模型记录 AI 引用情况，不能只看个别回答。
 

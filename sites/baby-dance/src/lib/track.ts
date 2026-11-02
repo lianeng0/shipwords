@@ -1,5 +1,6 @@
 import type { SiteConfig } from '@shipwords/core/site';
 import site from '../../site.config';
+import { analyticsDisabled } from './analytics-preferences';
 
 const analytics: NonNullable<SiteConfig['analytics']> = site.analytics;
 
@@ -48,6 +49,7 @@ export function track(name: string, props?: Props) {
     typeof window === 'undefined' ||
     import.meta.env.DEV ||
     window.location.origin !== site.url ||
+    analyticsDisabled() ||
     (!analytics.rybbit && !analytics.ga4)
   )
     return;
@@ -65,6 +67,7 @@ export function identify(userId: string) {
     typeof window === 'undefined' ||
     import.meta.env.DEV ||
     window.location.origin !== site.url ||
+    analyticsDisabled() ||
     !analytics.rybbit ||
     identified === userId
   )

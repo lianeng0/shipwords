@@ -13,7 +13,7 @@ let pending: (() => void) | null = null;
 /** source goes into the sign_in_open event to show which step asked for sign-in. */
 export function openSignIn(then?: () => void, source = 'nav') {
   pending = then ?? null;
-  track('sign_in_open', { source });
+  track('sign_in_open', { ui_location: source });
   window.dispatchEvent(new Event(OPEN_EVENT));
 }
 

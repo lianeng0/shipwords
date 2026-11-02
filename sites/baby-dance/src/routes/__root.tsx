@@ -2,6 +2,7 @@ import { analyticsScripts } from '@shipwords/core/analytics';
 import { captureAttribution } from '@shipwords/core/react/attribution';
 import { createRootRoute, HeadContent, Link, Outlet, Scripts } from '@tanstack/react-router';
 import { type ReactNode, useEffect } from 'react';
+import { analyticsPreferenceScript } from '~/lib/analytics-preferences';
 import { authClient } from '~/lib/auth';
 import { getPublicConfig } from '~/lib/public-config';
 import { identify } from '~/lib/track';
@@ -39,7 +40,9 @@ export const Route = createRootRoute({
         type: 'application/ld+json',
         children: JSON.stringify({ '@context': 'https://schema.org', ...organization }),
       },
-      ...(import.meta.env.DEV || !loaderData?.analyticsEnabled ? [] : analyticsScripts(site)),
+      ...(import.meta.env.DEV || !loaderData?.analyticsEnabled
+        ? []
+        : [{ children: analyticsPreferenceScript }, ...analyticsScripts(site)]),
     ],
   }),
   shellComponent: Document,

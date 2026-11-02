@@ -354,6 +354,9 @@ function BabyDanceTool({ generation }: { generation: ReturnType<typeof useGenera
   const [photo, setPhoto] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const form = useRef<HTMLFormElement>(null);
   const [resumed, setResumed] = useState(false);
   // Ask for confirmation when a job is already running: users who think nothing happened click again and get charged twice.
   const [confirmAnother, setConfirmAnother] = useState(false);
@@ -361,6 +364,21 @@ function BabyDanceTool({ generation }: { generation: ReturnType<typeof useGenera
   const model = models.find((item) => item.id === modelId) ?? models[0];
   const cost = creditsFor(model, {});
   const rendering = jobs.some(isActive);
+
+  useEffect(() => {
+    const element = form.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        track('generator_view');
+        observer.disconnect();
+      },
+      { threshold: 0.3 },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const saved = loadState();
@@ -405,14 +423,28 @@ function BabyDanceTool({ generation }: { generation: ReturnType<typeof useGenera
   async function onFiles(files: FileList | null) {
     setUploadError(null);
     const file = files?.[0];
-    if (!file) return;
+    if (!file || uploading) return;
+    track('photo_selected', { type: file.type, bytes: file.size });
+    const reason = !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
+      ? 'unsupported_type'
+      : file.size > 10 * 1024 * 1024 || file.size === 0
+        ? 'invalid_size'
+        : null;
+    if (reason) {
+      track('upload_rejected', { reason });
+      setUploadError(reason === 'unsupported_type' ? m.home_tool_upload_format() : m.home_tool_upload_size());
+      return;
+    }
+    setUploading(true);
     try {
       track('upload_started', { type: file.type, bytes: file.size });
       setPhoto(await uploadReference(file));
       track('upload_completed');
     } catch (e) {
-      track('upload_failed');
+      track('upload_failed', { reason: 'request_failed' });
       setUploadError(e instanceof Error ? e.message : m.home_tool_upload_failed());
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -424,6 +456,11 @@ function BabyDanceTool({ generation }: { generation: ReturnType<typeof useGenera
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
+    if (uploading || submitting) return;
+    if (!photo) {
+      fileInput.current?.click();
+      return;
+    }
     const click = (blocked: string) => track('generate_click', { model: modelId, blocked });
     if (rendering && !confirmAnother) {
       click('confirm_another');
@@ -436,8 +473,9 @@ function BabyDanceTool({ generation }: { generation: ReturnType<typeof useGenera
   }
 
   return (
-    <form className="drop" onSubmit={onSubmit}>
+    <form ref={form} className="drop" onSubmit={onSubmit}>
       <ReturnNotice jobs={jobs} />
+      {!session.data && <p className="preview-note">{m.home_tool_free_note()}</p>}
 
       {photo ? (
         <div className="drop-preview">
@@ -476,9 +514,15 @@ function BabyDanceTool({ generation }: { generation: ReturnType<typeof useGenera
           <span className="drop-title">{dragging ? m.home_upload_drop_active() : m.home_upload_title()}</span>
           <span className="drop-hint">{m.home_upload_hint()}</span>
           <input
+            ref={fileInput}
             type="file"
             accept="image/png,image/jpeg,image/webp"
             aria-label={m.home_upload_title()}
+            disabled={uploading}
+            onClick={(event) => {
+              event.currentTarget.value = '';
+              track('upload_picker_open');
+            }}
             onChange={(e) => void onFiles(e.target.files)}
           />
         </div>
@@ -495,18 +539,26 @@ function BabyDanceTool({ generation }: { generation: ReturnType<typeof useGenera
               checked={modelId === item.id}
               onChange={() => setModelId(item.id)}
             />
-            <span className="version-name">{item.name}</span>
+            <span className="version-name">
+              {item.id === models[0].id ? m.home_version_preview_label() : m.home_version_full_label()}
+            </span>
             <span className="version-note">{m.home_version_credits({ credits: creditsFor(item, {}) })}</span>
           </label>
         ))}
       </fieldset>
 
-      <button type="submit" className="primary" disabled={submitting || !photo}>
-        {submitting
-          ? m.home_tool_starting()
-          : confirmAnother
-            ? m.home_tool_submit_another({ cost })
-            : m.home_tool_submit({ cost })}
+      <button type="submit" className="primary" disabled={submitting || uploading}>
+        {uploading
+          ? m.home_tool_uploading()
+          : !photo
+            ? m.home_tool_choose_photo()
+            : submitting
+              ? m.home_tool_starting()
+              : confirmAnother
+                ? m.home_tool_submit_another({ cost })
+                : !session.data && modelId === models[0].id
+                  ? m.home_tool_free_submit()
+                  : m.home_tool_submit({ cost })}
       </button>
 
       <p className="trust">

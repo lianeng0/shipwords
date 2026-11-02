@@ -16,7 +16,7 @@ const OPEN_EVENT = 'site:pricing';
 export const RESUME_PATH = '/?resume=1#tool';
 
 export function openPricing(source: string) {
-  track('pricing_open', { source });
+  track('pricing_open', { ui_location: source });
   window.dispatchEvent(new Event(OPEN_EVENT));
 }
 
@@ -83,7 +83,7 @@ export function Plans({
   function buy(productId: string) {
     // After paying, return to the generator; its input is restored from sessionStorage (routes/index.tsx).
     const start = () => {
-      track('checkout_start', { product: productId, source });
+      track('checkout_start', { product: productId, ui_location: source });
       void checkout(productId, RESUME_PATH);
     };
     if (session.data) start();
