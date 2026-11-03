@@ -39,11 +39,38 @@ export class ComposeContainer extends Container {
   }
 }
 
+/**
+ * Stops container instances left behind by finished jobs. Instances outlive the job that started them when the stop on
+ * the way out fails (see stop-hook.ts), and nothing rewrites an instance that already exists, so the only way back is to
+ * wake each job's Durable Object and destroy what is still running. Only finished jobs are touched: a job in flight would
+ * lose the files its next compose step reads.
+ */
+async function reapFinishedContainers(request: Request, env: Env): Promise<Response | null> {
+  const url = new URL(request.url);
+  if (url.pathname !== '/_reap' || request.method !== 'POST') return null;
+  const rows = await env.DB.prepare(
+    "select id from jobs where status in ('succeeded', 'failed', 'cancelled') order by created_at desc limit 50",
+  ).all<{ id: string }>();
+  const stopped: string[] = [];
+  for (const row of rows.results) {
+    try {
+      const stub = env.COMPOSE.get(env.COMPOSE.idFromName(row.id));
+      await stub.fetch('http://compose/_stop', { method: 'POST' });
+      stopped.push(row.id);
+    } catch {
+      // The instance was already gone, which is the outcome we wanted anyway.
+    }
+  }
+  return Response.json({ stopped: stopped.length, ids: stopped });
+}
+
 export default {
   async fetch(request, env) {
     // Rybbit analytics goes through this site's /stats/ and is proxied upstream here.
     const stats = await proxyRybbit(request, env.RYBBIT_UPSTREAM);
     if (stats) return stats;
+    const reaped = await reapFinishedContainers(request, env);
+    if (reaped) return reaped;
     // Only local dev picks the locale from a cookie (for zh review); production is English only and passes requests straight to TanStack Start.
     return import.meta.env.DEV
       ? paraglideMiddleware(request, () => handler.fetch(request))
