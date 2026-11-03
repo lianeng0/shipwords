@@ -20,10 +20,7 @@ export class ComposeContainer extends Container {
   // The workflow shuts the instance down through here. Intercepted before super.fetch so that a cold
   // Durable Object answers without starting a container (a forwarded request would start one, and bill it).
   override async fetch(request: Request): Promise<Response> {
-    const stopped = await handleStopRequest(request, {
-      running: this.ctx.container?.running ?? false,
-      stop: () => this.stop(),
-    });
+    const stopped = await handleStopRequest(request, this);
     return stopped ?? super.fetch(request);
   }
 

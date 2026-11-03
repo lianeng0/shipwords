@@ -255,3 +255,8 @@ createServer(async (req, res) => {
     res.writeHead(500, { 'content-type': 'text/plain' }).end(String(error?.message ?? error));
   }
 }).listen(8080);
+
+// node runs as PID 1 here, and the kernel drops unhandled signals sent to PID 1 -- the SIGTERM that
+// @cloudflare/containers sends from stop() and from sleepAfter included. Without these handlers every stop was a
+// no-op that still looked successful, and finished instances kept billing for their provisioned memory for days.
+for (const signal of ['SIGTERM', 'SIGINT']) process.on(signal, () => process.exit(0));

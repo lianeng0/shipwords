@@ -2,20 +2,29 @@
 // Container subclass before anything reaches the container. Forwarding it would start a cold instance only to stop it,
 // and that instance bills for its provisioned memory while it comes up.
 
-/** What the hook needs from the container: whether an instance is up, and how to stop it. */
+/** What the hook needs from the container: a way to kill the instance outright. */
 export interface StopTarget {
-  /** False when the instance is already stopped, or was never started (a cold Durable Object). */
-  readonly running: boolean;
-  stop(): Promise<void>;
+  /** Kills the instance with SIGKILL. See the note on `stop()` below for why this is not `stop()`. */
+  destroy(): Promise<void>;
 }
 
 /**
  * The 204 to answer with when the request is a stop, or null when it is anything else and belongs to the container.
- * Stopping is skipped when nothing is running: `stop()` would otherwise start an instance just to shut it down.
+ *
+ * Two properties this relies on, both learned the hard way:
+ * - `destroy()` sends SIGKILL, not SIGTERM. The image ran `node server.mjs` as PID 1, and PID 1 drops unhandled
+ *   signals, so every `stop()` was silently swallowed and instances billed for days.
+ * - There is no `running` guard here. `stop()` carries its own `if (this.container.running)` check, and after a
+ *   deploy resets the Durable Object that check can read false for an instance that is very much alive; the stop
+ *   then returns without doing anything. `destroy()` has no such precondition, and a cold object simply throws.
  */
 export async function handleStopRequest(request: Request, target: StopTarget): Promise<Response | null> {
   const url = new URL(request.url);
   if (url.pathname !== '/_stop' || request.method !== 'POST') return null;
-  if (target.running) await target.stop();
+  try {
+    await target.destroy();
+  } catch {
+    // Nothing to kill: a cold Durable Object has no instance behind it.
+  }
   return new Response(null, { status: 204 });
 }

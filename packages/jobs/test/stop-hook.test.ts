@@ -4,37 +4,39 @@ import { handleStopRequest } from '../src/stop-hook';
 // The other half of containerComposer.stop: what the Container subclass does with the request. Forwarding it would
 // start a cold instance only to stop it, and that instance bills for its provisioned memory while it comes up.
 describe('stop hook', () => {
-  const target = (running: boolean, calls: string[]) => ({
-    running,
-    async stop() {
-      calls.push('stop');
+  const target = (calls: string[], fail = false) => ({
+    async destroy() {
+      calls.push('destroy');
+      if (fail) throw new Error('no instance');
     },
   });
   const stop = () => new Request('http://compose/_stop', { method: 'POST' });
 
-  it('stops a running instance and answers 204 before the request reaches the container', async () => {
+  it('kills the instance and answers 204 before the request reaches the container', async () => {
     const calls: string[] = [];
-    const response = await handleStopRequest(stop(), target(true, calls));
+    const response = await handleStopRequest(stop(), target(calls));
     expect(response?.status).toBe(204);
-    expect(calls).toEqual(['stop']);
+    expect(calls).toEqual(['destroy']);
   });
 
-  it('answers 204 without stopping when nothing runs, so a cold object never starts an instance', async () => {
+  // destroy() is SIGKILL, so it needs no `running` guard: after a deploy resets the Durable Object that guard can
+  // read false for a live instance and skip the stop entirely, which is how five instances survived for days.
+  it('still answers 204 when there is no instance to kill, so a cold object never starts one', async () => {
     const calls: string[] = [];
-    const response = await handleStopRequest(stop(), target(false, calls));
+    const response = await handleStopRequest(stop(), target(calls, true));
     expect(response?.status).toBe(204);
-    expect(calls).toEqual([]);
+    expect(calls).toEqual(['destroy']);
   });
 
   it('leaves every other request to the container', async () => {
     const calls: string[] = [];
     const other = new Request('http://compose/compose', { method: 'POST' });
-    expect(await handleStopRequest(other, target(true, calls))).toBeNull();
-    // A GET has no side effects here: only the POST the workflow sends stops anything.
+    expect(await handleStopRequest(other, target(calls))).toBeNull();
+    // A GET has no side effects here: only the POST the workflow sends kills anything.
     const get = new Request('http://compose/_stop', { method: 'GET' });
-    expect(await handleStopRequest(get, target(true, calls))).toBeNull();
+    expect(await handleStopRequest(get, target(calls))).toBeNull();
     const nested = new Request('http://compose/_stop/files/x', { method: 'POST' });
-    expect(await handleStopRequest(nested, target(true, calls))).toBeNull();
+    expect(await handleStopRequest(nested, target(calls))).toBeNull();
     expect(calls).toEqual([]);
   });
 });
