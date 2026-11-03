@@ -1,5 +1,6 @@
 import { Container } from '@cloudflare/containers';
 import { proxyRybbit } from '@shipwords/core/analytics';
+import { handleStopRequest } from '@shipwords/jobs/stop-hook';
 import { defineGenerationWorkflow } from '@shipwords/jobs/workflow';
 import handler from '@tanstack/react-start/server-entry';
 import { paraglideMiddleware } from '~/paraglide/server.js';
@@ -12,18 +13,18 @@ export const GenerationWorkflow = defineGenerationWorkflow(models, site);
 /** Effect video compose (ffmpeg), image in packages/jobs/compose; one instance per jobId, stopped when the job ends. */
 export class ComposeContainer extends Container {
   override defaultPort = 8080;
-  // Backstop only: the workflow posts /_stop when a job finishes. Short, because memory is billed per second of life.
-  override sleepAfter = '2m';
+  // Backstop only: the workflow posts /_stop when a job finishes. Not short on purpose: the five calls a job makes to
+  // this container are separated by up to minutes of upstream rendering, and waking for each one costs a cold start.
+  override sleepAfter = '5m';
 
   // The workflow shuts the instance down through here. Intercepted before super.fetch so that a cold
   // Durable Object answers without starting a container (a forwarded request would start one, and bill it).
   override async fetch(request: Request): Promise<Response> {
-    const url = new URL(request.url);
-    if (url.pathname === '/_stop' && request.method === 'POST') {
-      if (this.ctx.container?.running) await this.stop();
-      return new Response(null, { status: 204 });
-    }
-    return super.fetch(request);
+    const stopped = await handleStopRequest(request, {
+      running: this.ctx.container?.running ?? false,
+      stop: () => this.stop(),
+    });
+    return stopped ?? super.fetch(request);
   }
 
   // biome-ignore lint/complexity/noBannedTypes: matches the Container base class constructor signature
