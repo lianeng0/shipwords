@@ -69,6 +69,12 @@ export function defineGenerationWorkflow(models: readonly ModelDefinition[], sit
       const env = this.env;
       const db = createDb(env.DB);
       const baseURL = (env.APP_URL ?? site?.url)?.replace(/\/$/, '');
+      // Held here so the finally below can shut the container down even when the run throws.
+      const composer = mockMode(env)
+        ? mockComposer(env.OUTPUTS, fixedMockResult(env))
+        : env.COMPOSE
+          ? containerComposer(env.COMPOSE, env.OUTPUTS)
+          : undefined;
       try {
         await runGeneration(
           {
@@ -76,11 +82,7 @@ export function defineGenerationWorkflow(models: readonly ModelDefinition[], sit
             bucket: env.OUTPUTS,
             models,
             adapters: createAdapters(env),
-            ...(mockMode(env)
-              ? { composer: mockComposer(env.OUTPUTS, fixedMockResult(env)) }
-              : env.COMPOSE
-                ? { composer: containerComposer(env.COMPOSE, env.OUTPUTS) }
-                : {}),
+            ...(composer ? { composer } : {}),
             // Served by the site's /files route (handlers.ts file), the same origin the upload URLs use.
             ...(baseURL ? { fileUrl: (key: string) => `${baseURL}/files/${key}` } : {}),
             ...(site && env.EMAIL && env.EMAIL_FROM
@@ -107,6 +109,12 @@ export function defineGenerationWorkflow(models: readonly ModelDefinition[], sit
         await step.do('abort:outer', async () => {
           await markFailed(db, event.payload.jobId, 'failed', 'internal_error', String(error));
           return true;
+        });
+      } finally {
+        // Shut the container down here rather than trusting sleepAfter: an idle standard-3 instance bills
+        // for its provisioned 8 GiB and 16 GB while it lives, whether or not a job is still using it.
+        await composer?.stop?.(event.payload.jobId).catch((stopError) => {
+          console.log('compose stop failed', stopError);
         });
       }
     }

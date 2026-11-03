@@ -9,10 +9,22 @@ import models from './models.server';
 // Worker entry: pages and API go to TanStack Start, plus the Workflow class for generation jobs and the compose container.
 export const GenerationWorkflow = defineGenerationWorkflow(models, site);
 
-/** Effect video compose (ffmpeg), image in packages/jobs/compose; one instance per jobId, sleeps after a few idle minutes. */
+/** Effect video compose (ffmpeg), image in packages/jobs/compose; one instance per jobId, stopped when the job ends. */
 export class ComposeContainer extends Container {
   override defaultPort = 8080;
-  override sleepAfter = '5m';
+  // Backstop only: the workflow posts /_stop when a job finishes. Short, because memory is billed per second of life.
+  override sleepAfter = '2m';
+
+  // The workflow shuts the instance down through here. Intercepted before super.fetch so that a cold
+  // Durable Object answers without starting a container (a forwarded request would start one, and bill it).
+  override async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+    if (url.pathname === '/_stop' && request.method === 'POST') {
+      if (this.ctx.container?.running) await this.stop();
+      return new Response(null, { status: 204 });
+    }
+    return super.fetch(request);
+  }
 
   // biome-ignore lint/complexity/noBannedTypes: matches the Container base class constructor signature
   constructor(ctx: DurableObjectState<{}>, env: Env) {

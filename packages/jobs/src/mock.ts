@@ -134,5 +134,7 @@ export function mockComposer(bucket: R2Bucket, fixed?: { song: string; silent: s
       const bytes = await read(input.key);
       return { song: bytes, silent: bytes.slice(0) };
     },
+    // No container locally, so nothing to shut down.
+    async stop() {},
   };
 }

@@ -80,6 +80,13 @@ export interface Composer {
    * feathered inner edges; everything else, and the soundtrack, stays as it was. Returns with-track and silent versions. Repeatable.
    */
   patch(input: PatchInput): Promise<{ song: ArrayBuffer; silent: ArrayBuffer }>;
+  /**
+   * Release the container instance for this job once the job is over, success or failure alike.
+   * Containers are billed per the memory and disk of the instance type for as long as it lives, so a
+   * finished job that leaves one running costs money by the hour. Best effort; optional for composers
+   * without a container.
+   */
+  stop?(jobId: string): Promise<void>;
 }
 
 async function blobOf(bucket: R2Bucket, key: string): Promise<Blob> {
@@ -165,6 +172,13 @@ export function containerComposer(namespace: DurableObjectNamespace, bucket: R2B
       const silent = await stub.fetch(`http://compose/files/${input.name}/silent.mp4`);
       if (!silent.ok) throw new Error(`patch silent copy failed: ${silent.status}`);
       return { song, silent: await silent.arrayBuffer() };
+    },
+    async stop(jobId) {
+      // Handled by the Container subclass before it forwards to the container: a cold Durable Object answers
+      // 204 without starting an instance (a request would otherwise start one, then keep billing it).
+      const stub = namespace.get(namespace.idFromName(jobId));
+      const response = await stub.fetch('http://compose/_stop', { method: 'POST' });
+      if (!response.ok) throw new Error(`compose stop failed: ${response.status}`);
     },
   };
 }
