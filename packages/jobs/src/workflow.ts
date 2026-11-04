@@ -69,7 +69,7 @@ export function defineGenerationWorkflow(models: readonly ModelDefinition[], sit
       const env = this.env;
       const db = createDb(env.DB);
       const baseURL = (env.APP_URL ?? site?.url)?.replace(/\/$/, '');
-      // Held here so the finally below can shut the container down even when the run throws.
+      // Also used by the outer fallback if setup/settlement fails outside the runner.
       const composer = mockMode(env)
         ? mockComposer(env.OUTPUTS, fixedMockResult(env))
         : env.COMPOSE
@@ -106,16 +106,22 @@ export function defineGenerationWorkflow(models: readonly ModelDefinition[], sit
         );
       } catch (error) {
         // runGeneration has its own fallback; this catches errors outside steps (e.g. failing to construct the adapter).
-        await step.do('abort:outer', async () => {
-          await markFailed(db, event.payload.jobId, 'failed', 'internal_error', String(error));
-          return true;
-        });
-      } finally {
-        // Shut the container down here rather than trusting sleepAfter: an idle standard-3 instance bills
-        // for its provisioned 8 GiB and 16 GB while it lives, whether or not a job is still using it.
-        await composer?.stop?.(event.payload.jobId).catch((stopError) => {
-          console.log('compose stop failed', stopError);
-        });
+        try {
+          await step.do('abort:outer', async () => {
+            await markFailed(db, event.payload.jobId, 'failed', 'internal_error', String(error));
+            return true;
+          });
+        } finally {
+          // Also release when the database is unavailable; normal cleanup belongs to the runner.
+          if (composer?.stop) {
+            await step
+              .do('compose:stop:outer', STEP_RETRIES, async () => {
+                await composer.stop!(event.payload.jobId);
+                return true;
+              })
+              .catch((stopError) => console.error('compose stop failed', stopError));
+          }
+        }
       }
     }
   };

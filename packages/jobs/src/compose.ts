@@ -2,6 +2,7 @@
 // The actual ffmpeg runs in Cloudflare Containers (image in packages/jobs/compose/); this side only
 // fetches files from R2, hands them to the container and stores the results.
 
+import { stopContainer } from './container-cleanup';
 import type { CropBox, FacePoint } from './models';
 
 export interface ComposeSegment {
@@ -176,9 +177,7 @@ export function containerComposer(namespace: DurableObjectNamespace, bucket: R2B
     async stop(jobId) {
       // Handled by the Container subclass before it forwards to the container: a cold Durable Object answers
       // 204 without starting an instance (a request would otherwise start one, then keep billing it).
-      const stub = namespace.get(namespace.idFromName(jobId));
-      const response = await stub.fetch('http://compose/_stop', { method: 'POST' });
-      if (!response.ok) throw new Error(`compose stop failed: ${response.status}`);
+      await stopContainer(namespace, jobId);
     },
   };
 }

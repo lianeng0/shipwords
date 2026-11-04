@@ -5,6 +5,7 @@ import { consumeQuota, dayWindow, releaseQuota } from '@shipwords/core/quota/cou
 import { ensureGuestId, readGuestId } from '@shipwords/core/quota/guest';
 import type { Core } from '@shipwords/core/server';
 import { and, desc, eq, isNull } from 'drizzle-orm';
+import { stopContainer } from './container-cleanup';
 import { imageSize } from './image-size';
 import {
   claimGuestJobs,
@@ -16,6 +17,7 @@ import {
   spendKey,
   upstreamIds,
 } from './lifecycle';
+import { mockMode } from './mock';
 import {
   creditsFor,
   effectParts,
@@ -284,6 +286,13 @@ export function createJobs(core: Core, models: readonly ModelDefinition[]) {
           .GENERATION_WORKFLOW.get(jobId)
           .then((instance) => instance.terminate())
           .catch(() => undefined);
+        // terminate() does not run the Workflow's finally block. Repeated cancels also retry cleanup.
+        const namespace = mockMode(env()) ? undefined : env().COMPOSE;
+        const cleanup = namespace
+          ? stopContainer(namespace, jobId).catch((error) =>
+              core.log('compose stop failed after cancel', { jobId, error: String(error) }),
+            )
+          : Promise.resolve();
         // createAdapters throws when the mock is misconfigured; nothing real was submitted then, so there is nothing to cancel.
         const adapter = (() => {
           try {
@@ -295,6 +304,7 @@ export function createJobs(core: Core, models: readonly ModelDefinition[]) {
         // The job read before canceling may not list every segment yet; use the record after canceling so a just-submitted segment isn't missed.
         const ids = upstreamIds(updated).filter((id) => !id.startsWith(SKIPPED_UPSTREAM));
         if (adapter) await Promise.all(ids.map((id) => adapter.cancel(id).catch(() => undefined)));
+        await cleanup;
       }
       return json({ job: updated ? publicJob(updated, baseURL()) : null });
     },

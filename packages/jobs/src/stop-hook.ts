@@ -6,6 +6,8 @@
 export interface StopTarget {
   /** Kills the instance with SIGKILL. See the note on `stop()` below for why this is not `stop()`. */
   destroy(): Promise<void>;
+  /** Authoritative platform check without starting an instance. */
+  inspect(): Promise<object | null>;
 }
 
 /**
@@ -16,15 +18,16 @@ export interface StopTarget {
  *   signals, so every `stop()` was silently swallowed and instances billed for days.
  * - There is no `running` guard here. `stop()` carries its own `if (this.container.running)` check, and after a
  *   deploy resets the Durable Object that check can read false for an instance that is very much alive; the stop
- *   then returns without doing anything. `destroy()` has no such precondition, and a cold object simply throws.
+ *   then returns without doing anything. Always attempt destroy, then use inspect to distinguish a stopped
+ *   instance from a platform failure. Neither call starts a container.
  */
 export async function handleStopRequest(request: Request, target: StopTarget): Promise<Response | null> {
   const url = new URL(request.url);
   if (url.pathname !== '/_stop' || request.method !== 'POST') return null;
   try {
     await target.destroy();
-  } catch {
-    // Nothing to kill: a cold Durable Object has no instance behind it.
+  } catch (error) {
+    if ((await target.inspect()) !== null) throw error;
   }
   return new Response(null, { status: 204 });
 }

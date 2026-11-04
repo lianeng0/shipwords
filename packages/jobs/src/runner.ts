@@ -99,6 +99,16 @@ export async function runGeneration(deps: RunnerDeps, jobId: string, step: StepR
       await markFailed(deps.db, jobId, 'failed', 'internal_error', message);
       return true;
     });
+  } finally {
+    // All delivered bytes are in R2 before runSteps finishes. Release before notification/cost waits.
+    if (deps.composer?.stop) {
+      await step
+        .do('compose:stop', async () => {
+          await deps.composer!.stop!(jobId);
+          return true;
+        })
+        .catch((error: unknown) => deps.log?.('compose stop failed', { jobId, error: String(error) }));
+    }
   }
   // Always settle once at the end: if a step marked the job failed but the refund write failed, on retry that step is skipped because the job is terminal,
   // so settle here on the final state (refunds and quota returns are idempotent).

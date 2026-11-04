@@ -4,6 +4,7 @@
   "main": "src/server.ts",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
+  "triggers": { "crons": ["*/15 * * * *"] },
   "observability": { "enabled": true },
   "upload_source_maps": true,
   // Custom domain, not a workers.dev subdomain: the zone is on this account, and email sign-in needs the same origin

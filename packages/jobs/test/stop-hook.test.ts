@@ -9,6 +9,9 @@ describe('stop hook', () => {
       calls.push('destroy');
       if (fail) throw new Error('no instance');
     },
+    async inspect() {
+      return null;
+    },
   });
   const stop = () => new Request('http://compose/_stop', { method: 'POST' });
 
@@ -38,5 +41,31 @@ describe('stop hook', () => {
     const nested = new Request('http://compose/_stop/files/x', { method: 'POST' });
     expect(await handleStopRequest(nested, target(calls))).toBeNull();
     expect(calls).toEqual([]);
+  });
+
+  it('propagates platform failures while an instance still exists', async () => {
+    await expect(
+      handleStopRequest(stop(), {
+        async destroy() {
+          throw new Error('platform unavailable');
+        },
+        async inspect() {
+          return { image: 'compose' };
+        },
+      }),
+    ).rejects.toThrow('platform unavailable');
+  });
+
+  it('does not assume the instance is gone when inspection fails', async () => {
+    await expect(
+      handleStopRequest(stop(), {
+        async destroy() {
+          throw new Error('destroy failed');
+        },
+        async inspect() {
+          throw new Error('inspection unavailable');
+        },
+      }),
+    ).rejects.toThrow('inspection unavailable');
   });
 });

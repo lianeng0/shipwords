@@ -5,6 +5,7 @@
   "main": "src/server.ts",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
+  "triggers": { "crons": ["*/15 * * * *"] },
   "observability": { "enabled": true },
   "upload_source_maps": true,
   // Add your domain before deploying: "routes": [{ "pattern": "your-domain.com", "custom_domain": true }],

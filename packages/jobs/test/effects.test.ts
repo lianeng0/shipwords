@@ -499,6 +499,65 @@ describe('effect compose', () => {
     return adapter;
   }
 
+  it('releases only after R2 delivery, before notification, and keeps results available on replay', async () => {
+    const { jobId, userId } = await composeJob({ left: '/files/uploads/up_a.png' });
+    const composer = new FakeComposer();
+    let running = true;
+    let stops = 0;
+    const stop = async (id: string) => {
+      expect(id).toBe(jobId);
+      const job = await loadJob(db, jobId);
+      expect(job?.status).toBe('succeeded');
+      for (const output of JSON.parse(job!.outputsJson!)) {
+        expect(await env.OUTPUTS.get(output.key)).not.toBeNull();
+      }
+      running = false;
+      stops++;
+    };
+    const cache = new Map<string, unknown>();
+    const notify = vi.fn(async () => {
+      expect(running).toBe(false);
+    });
+    const input = {
+      ...deps(adapterFor(jobId)),
+      models: composeModels,
+      composer: Object.assign(composer, { stop }),
+      notify,
+    };
+    await runGeneration(input, jobId, durableSteps(cache));
+    await runGeneration(input, jobId, durableSteps(cache));
+    expect(stops).toBe(1);
+    expect(notify).toHaveBeenCalledTimes(1);
+    expect(running).toBe(false);
+    expect(composer.calls).toHaveLength(1);
+    expect((await getBalance(db, userId)).available).toBe(40);
+  });
+
+  it('stop failure does not turn a successful delivery into a refund or repeat a failed-job refund', async () => {
+    for (const failCompose of [false, true]) {
+      const { jobId, userId } = await composeJob({ left: '/files/uploads/up_a.png' });
+      const composer = new FakeComposer();
+      if (failCompose) composer.error = new Error('compose failed');
+      const stop = vi.fn(async () => {
+        throw new Error('platform unavailable');
+      });
+      const log = vi.fn();
+      const input = {
+        ...deps(adapterFor(jobId)),
+        models: composeModels,
+        composer: Object.assign(composer, { stop }),
+        log,
+      };
+      const cache = new Map<string, unknown>();
+      await runGeneration(input, jobId, durableSteps(cache));
+      await runGeneration(input, jobId, durableSteps(cache));
+      expect(stop).toHaveBeenCalledTimes(2);
+      expect(log).toHaveBeenCalledWith('compose stop failed', expect.objectContaining({ jobId }));
+      expect((await loadJob(db, jobId))?.status).toBe(failCompose ? 'failed' : 'succeeded');
+      expect((await getBalance(db, userId)).available).toBe(failCompose ? 50 : 40);
+    }
+  });
+
   it('rendered segments use model outputs, unrendered ones use base clips, output keeps only with-track and silent versions', async () => {
     const { userId, jobId } = await composeJob({ left: '/files/uploads/up_a.png' });
     const composer = new FakeComposer();
