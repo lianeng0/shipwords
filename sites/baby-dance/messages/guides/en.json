@@ -119,5 +119,8 @@
   "nc_faq3_q": "Can I make it on a phone?",
   "nc_faq3_a": "Yes. The upload takes a photo straight from the camera roll and the finished file downloads to the phone.",
   "nc_faq4_q": "What if the face does not match?",
-  "nc_faq4_a": "Re-run with a sharper photo. Every render is checked against the photo automatically, and when the check fails the job is refunded instead of delivered."
+  "nc_faq4_a": "Re-run with a sharper photo. Every render is checked against the photo automatically, and when the check fails the job is refunded instead of delivered.",
+  "lyr_artist_link_intro": "For the performer credits and the distinction between the songwriter and virtual artist, read",
+  "tn_lyrics_link_intro": "Looking for the words rather than the performer? Read",
+  "isai_lyrics_link_intro": "For the Spanish phrases and their English meanings, see"
 }

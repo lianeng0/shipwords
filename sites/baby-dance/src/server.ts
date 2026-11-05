@@ -8,6 +8,7 @@ import handler from '@tanstack/react-start/server-entry';
 import { paraglideMiddleware } from '~/paraglide/server.js';
 import site from '../site.config';
 import models from './models.server';
+import { httpsRedirect } from './request-policy.server';
 
 // Worker entry: pages and API go to TanStack Start, plus the Workflow class for generation jobs and the compose container.
 export const GenerationWorkflow = defineGenerationWorkflow(models, site);
@@ -57,6 +58,8 @@ export default {
     await runContainerMaintenance(env.COMPOSE);
   },
   async fetch(request, env) {
+    const redirect = httpsRedirect(request, site.url);
+    if (redirect) return redirect;
     // Retired public maintenance URL: no auth bypass, job IDs, or side effects.
     if (new URL(request.url).pathname === '/_reap') return new Response(null, { status: 404 });
     // Rybbit analytics goes through this site's /stats/ and is proxied upstream here.

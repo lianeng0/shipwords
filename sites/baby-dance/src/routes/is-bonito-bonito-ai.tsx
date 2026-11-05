@@ -2,7 +2,8 @@ import { pageHead } from '@shipwords/core/seo';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { m } from '~/paraglide/messages.js';
 import { Faq, type FaqItem, faqJsonLd, GuidePage, Table } from '~/site/guide';
-import { breadcrumbs, organization, updatedDate } from '~/site/product';
+import { pageModified } from '~/site/page-dates';
+import { breadcrumbs, organization } from '~/site/product';
 import { Sources } from '~/site/sources';
 import site from '../../site.config';
 
@@ -48,7 +49,7 @@ export const Route = createFileRoute('/is-bonito-bonito-ai')({
           headline: m.isai_title(),
           description: m.isai_meta_description(),
           datePublished: '2026-10-31',
-          dateModified: updatedDate,
+          dateModified: pageModified(PATH),
           author: organization,
           publisher: organization,
           image: `${site.url}/media/og-home.jpg`,
@@ -84,6 +85,9 @@ function IsAiPage() {
       <h2>{m.isai_evidence_heading()}</h2>
       <p>{m.isai_evidence_text()}</p>
       <p>{m.isai_evidence_text2()}</p>
+      <p>
+        {m.isai_lyrics_link_intro()} <Link to="/bonito-bonito-lyrics-english">{m.lyr_nav_title()}</Link>.
+      </p>
 
       <h2>{m.isai_timeline_heading()}</h2>
       <p>{m.isai_timeline_text()}</p>

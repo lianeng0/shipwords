@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { track } from '~/lib/track';
+import { posters } from './posters';
 
 /** Keep source URLs in SSR HTML for discovery; only the hero autoplays. */
 export function SampleVideo({ clip, label, hero = false }: { clip: string; label: string; hero?: boolean }) {
@@ -37,14 +38,15 @@ export function SampleVideo({ clip, label, hero = false }: { clip: string; label
     <video
       ref={ref}
       src={`/media/${clip}.mp4`}
-      poster={`/media/${clip}.jpg`}
+      poster={posters[clip] ?? `/media/${clip}.jpg`}
+      {...(!hero ? { loading: 'lazy' } : {})}
       width={720}
       height={1280}
       muted={hero}
       loop={hero}
       playsInline
       controls
-      preload={hero ? 'metadata' : 'none'}
+      preload="none"
       aria-label={label}
       onPointerDown={() => {
         automatic.current = false;

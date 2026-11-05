@@ -1,8 +1,9 @@
 import { pageHead } from '@shipwords/core/seo';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { m } from '~/paraglide/messages.js';
 import { Faq, type FaqItem, faqJsonLd, GuidePage, Table } from '~/site/guide';
-import { breadcrumbs, organization, updatedDate } from '~/site/product';
+import { pageModified } from '~/site/page-dates';
+import { breadcrumbs, organization } from '~/site/product';
 import { Sources } from '~/site/sources';
 import site from '../../site.config';
 
@@ -65,7 +66,7 @@ export const Route = createFileRoute('/bonito-bonito-lyrics-english')({
           headline: m.lyr_title(),
           description: m.lyr_meta_description(),
           datePublished: '2026-10-31',
-          dateModified: updatedDate,
+          dateModified: pageModified(PATH),
           author: organization,
           publisher: organization,
           image: `${site.url}/media/og-home.jpg`,
@@ -96,6 +97,9 @@ function LyricsPage() {
       <h2>{m.lyr_facts_heading()}</h2>
       <Table head={['Fact', 'Detail']} rows={FACTS} />
       <p>{m.lyr_facts_text()}</p>
+      <p>
+        {m.lyr_artist_link_intro()} <Link to="/thiago-navarro">{m.tn_nav_title()}</Link>.
+      </p>
 
       <h2>{m.lyr_structure_heading()}</h2>
       <p>{m.lyr_structure_text()}</p>

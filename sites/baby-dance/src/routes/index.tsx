@@ -254,7 +254,8 @@ function HomePage() {
           ))}
         </ul>
         <p className="muted move-note">
-          {m.home_trend_note()} <Link to="/bonito-bonito-lyrics-english">{m.home_trend_link()}</Link>.
+          {m.home_trend_note()} <Link to="/bonito-bonito-lyrics-english">{m.home_trend_link()}</Link>.{' '}
+          {m.lyr_artist_link_intro()} <Link to="/thiago-navarro">{m.tn_nav_title()}</Link>.
         </p>
       </section>
 

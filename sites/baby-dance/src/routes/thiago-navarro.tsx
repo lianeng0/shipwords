@@ -2,7 +2,8 @@ import { pageHead } from '@shipwords/core/seo';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { m } from '~/paraglide/messages.js';
 import { Faq, type FaqItem, faqJsonLd, GuidePage, Table } from '~/site/guide';
-import { breadcrumbs, organization, updatedDate } from '~/site/product';
+import { pageModified } from '~/site/page-dates';
+import { breadcrumbs, organization } from '~/site/product';
 import { Sources } from '~/site/sources';
 import site from '../../site.config';
 
@@ -40,7 +41,7 @@ export const Route = createFileRoute('/thiago-navarro')({
           headline: m.tn_title(),
           description: m.tn_meta_description(),
           datePublished: '2026-10-31',
-          dateModified: updatedDate,
+          dateModified: pageModified(PATH),
           author: organization,
           publisher: organization,
           image: `${site.url}/media/og-home.jpg`,
@@ -85,6 +86,9 @@ function ThiagoPage() {
       <h2>{m.tn_trend_heading()}</h2>
       <p>{m.tn_trend_text()}</p>
       <p>{m.tn_trend_text2()}</p>
+      <p>
+        {m.tn_lyrics_link_intro()} <Link to="/bonito-bonito-lyrics-english">{m.lyr_nav_title()}</Link>.
+      </p>
 
       <Sources />
       <Faq title={m.tn_faq_title()} items={faq()} />
